@@ -196,87 +196,24 @@ export function initIntro() {
   // Reduced motion check (hoisted so wheel map handler respects it)
   const isReducedMotion = typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
-  // Interactive Wheel Tile Geolocation & Google Maps Flow (Always active regardless of skip/session state)
-  function buildGoogleMapsPlaceUrl(destination: string): string {
-    return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(destination)}`;
+  // Instant Direct Google Maps Directions (0ms click -> map open, no blocking GPS wait or modal)
+  function buildGoogleMapsInstantDirectionsUrl(destination: string): string {
+    return `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(destination)}&travelmode=driving`;
   }
 
-  function buildGoogleMapsDirectionsUrl(lat: number, lng: number, destination: string): string {
-    return `https://www.google.com/maps/dir/?api=1&origin=${lat},${lng}&destination=${encodeURIComponent(destination)}&travelmode=driving`;
-  }
-
-  const mapModal = document.getElementById('map-location-modal');
-  const mapModalTitle = document.getElementById('map-modal-title');
-  const mapModalDest = document.getElementById('map-modal-dest');
-  const mapModalDesc = document.getElementById('map-modal-desc');
-  const mapAllowBtn = document.getElementById('map-allow-btn') as HTMLButtonElement | null;
-  const mapDenyLink = document.getElementById('map-deny-link') as HTMLAnchorElement | null;
-  const mapDirectLink = document.getElementById('map-direct-link') as HTMLAnchorElement | null;
-  const mapCloseBtn = document.getElementById('map-modal-close');
-  const mapBackdrop = document.getElementById('map-modal-backdrop');
-  let activeDestination = '';
-
-  function openMapModal(label: string, destination: string, displayName?: string) {
-    if (!mapModal || !destination) return;
-    activeDestination = destination;
-    const placeUrl = buildGoogleMapsPlaceUrl(destination);
-
-    if (mapModalTitle) mapModalTitle.textContent = label || 'LOCATION';
-    if (mapModalDest) mapModalDest.textContent = displayName || destination;
-    if (mapModalDesc) {
-      mapModalDesc.textContent = 'Allow device location to view distance, travel time, and route from where you are.';
-    }
-    if (mapAllowBtn) {
-      mapAllowBtn.disabled = false;
-      mapAllowBtn.textContent = 'Allow';
-      mapAllowBtn.classList.remove('hidden');
-    }
-    if (mapDenyLink) {
-      mapDenyLink.href = placeUrl;
-      mapDenyLink.classList.remove('hidden');
-    }
-    if (mapDirectLink) {
-      mapDirectLink.href = placeUrl;
-      mapDirectLink.classList.add('hidden');
-    }
-
-    setWheelPlayState(false);
-    mapModal.classList.remove('hidden');
-    mapModal.setAttribute('aria-hidden', 'false');
-    mapAllowBtn?.focus();
-  }
-
-  function closeMapModal() {
-    if (!mapModal) return;
-    mapModal.classList.add('hidden');
-    mapModal.setAttribute('aria-hidden', 'true');
-    if (wheelRotator && !isReducedMotion && wheelRotator.classList.contains('is-rotating') && document.visibilityState !== 'hidden') {
-      setWheelPlayState(true);
-    }
-  }
-
-  function showDirectMapFallback(url: string, msg: string, linkLabel: string) {
-    if (mapAllowBtn) mapAllowBtn.classList.add('hidden');
-    if (mapDenyLink) mapDenyLink.classList.add('hidden');
-    if (mapModalDesc) mapModalDesc.textContent = msg;
-    if (mapDirectLink) {
-      mapDirectLink.href = url;
-      mapDirectLink.textContent = linkLabel;
-      mapDirectLink.classList.remove('hidden');
-      mapDirectLink.focus();
-    }
-  }
+  let suppressNextClickUntil = 0;
 
   function handleTileSelection(targetEl: HTMLElement | null) {
     const clickable = targetEl?.closest('.tile-photo-clipper.is-clickable, .label-chip-wrapper.is-clickable') as HTMLElement | null;
     if (!clickable) return;
     const dest = clickable.dataset.location?.trim();
     if (!dest) return;
-    const disp = clickable.dataset.locationName?.trim() || dest;
-    openMapModal(clickable.dataset.label || 'LOCATION', dest, disp);
+    const mapsUrl = buildGoogleMapsInstantDirectionsUrl(dest);
+    const w = window.open(mapsUrl, '_blank', 'noopener,noreferrer');
+    if (!w) {
+      window.location.href = mapsUrl;
+    }
   }
-
-  let suppressNextClickUntil = 0;
 
   if (wheelRotator) {
     wheelRotator.addEventListener('click', (e) => {
@@ -293,65 +230,6 @@ export function initIntro() {
       }
     });
   }
-
-  mapCloseBtn?.addEventListener('click', closeMapModal);
-  mapBackdrop?.addEventListener('click', closeMapModal);
-  mapDenyLink?.addEventListener('click', () => {
-    setTimeout(closeMapModal, 150);
-  });
-  mapDirectLink?.addEventListener('click', () => {
-    setTimeout(closeMapModal, 150);
-  });
-  document.addEventListener('keydown', (e) => {
-    if (e.key === 'Escape' && mapModal && !mapModal.classList.contains('hidden')) {
-      closeMapModal();
-    }
-  });
-
-  mapAllowBtn?.addEventListener('click', () => {
-    if (!activeDestination) return;
-    const dest = activeDestination;
-    const fallbackUrl = buildGoogleMapsPlaceUrl(dest);
-
-    if (!('geolocation' in navigator)) {
-      const w = window.open(fallbackUrl, '_blank', 'noopener,noreferrer');
-      if (!w) {
-        showDirectMapFallback(fallbackUrl, 'Location unavailable on this device — tap below to view destination:', 'View Place on Google Maps');
-      } else {
-        closeMapModal();
-      }
-      return;
-    }
-
-    if (mapAllowBtn) {
-      mapAllowBtn.disabled = true;
-      mapAllowBtn.textContent = 'Locating...';
-    }
-    if (mapModalDesc) {
-      mapModalDesc.textContent = 'Checking device location for distance & route...';
-    }
-
-    navigator.geolocation.getCurrentPosition(
-      (pos) => {
-        const dirUrl = buildGoogleMapsDirectionsUrl(pos.coords.latitude, pos.coords.longitude, dest);
-        const w = window.open(dirUrl, '_blank', 'noopener,noreferrer');
-        if (w) {
-          closeMapModal();
-        } else {
-          showDirectMapFallback(dirUrl, 'Location ready! Tap below to open distance & directions in Google Maps:', 'Open Distance & Route in Google Maps');
-        }
-      },
-      () => {
-        const w = window.open(fallbackUrl, '_blank', 'noopener,noreferrer');
-        if (w) {
-          closeMapModal();
-        } else {
-          showDirectMapFallback(fallbackUrl, 'Device location off or denied — tap below to view the destination on Google Maps:', 'Open Location in Google Maps');
-        }
-      },
-      { enableHighAccuracy: false, timeout: 5000, maximumAge: 60000 }
-    );
-  });
 
   // Interactive Scroll, Angular Touch/Mouse Drag & Keyboard Wheel Spin (60fps Compositor Layer)
   const mainPage = document.getElementById('main-page');
@@ -373,7 +251,6 @@ export function initIntro() {
 
   function isWheelInteractive(): boolean {
     if (!wheelScrollWrap) return false;
-    if (mapModal && !mapModal.classList.contains('hidden')) return false;
     return isDone || (isDebugFreeze && freezeTime >= 7.87);
   }
 
@@ -388,7 +265,7 @@ export function initIntro() {
   }
 
   function stepInertia(now: number) {
-    if (isDraggingWheel || (mapModal && !mapModal.classList.contains('hidden'))) {
+    if (isDraggingWheel) {
       inertiaRafId = null;
       angularVelocity = 0;
       return;
@@ -440,7 +317,7 @@ export function initIntro() {
   mainPage?.addEventListener('pointerdown', (e) => {
     if (!isWheelInteractive() || !wheelSystem) return;
     if (e.pointerType === 'mouse' && e.button !== 0) return;
-    if ((e.target as HTMLElement)?.closest('.center-disc a, .center-disc button, #map-location-modal')) return;
+    if ((e.target as HTMLElement)?.closest('.center-disc a, .center-disc button')) return;
 
     isDraggingWheel = true;
     dragPointerId = e.pointerId;
@@ -1078,8 +955,7 @@ export function initIntro() {
       if (document.visibilityState === 'hidden') {
         setWheelPlayState(false);
       } else {
-        const modalOpen = mapModal && !mapModal.classList.contains('hidden');
-        if (!isReducedMotion && !modalOpen && rotator.classList.contains('is-rotating')) {
+        if (!isReducedMotion && rotator.classList.contains('is-rotating')) {
           setWheelPlayState(true);
         }
       }
