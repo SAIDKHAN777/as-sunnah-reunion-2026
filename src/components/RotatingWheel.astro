@@ -1,0 +1,730 @@
+---
+export interface TileData {
+  id: string;
+  label: string;
+  time?: string;
+  photoUrl: string;
+  location?: string;
+  locationName?: string;
+}
+
+interface Props {
+  tiles?: TileData[];
+  rotationDurationSec?: number;
+  logoUrl?: string;
+  titleRegular?: string;
+  titleItalic?: string;
+  scriptSubtitle?: string;
+  dateLine?: string;
+  scheduleLine1?: string;
+  scheduleLine2?: string;
+}
+
+const defaultTiles: TileData[] = [
+  { id: "1", label: "REUNION MOMENTS", photoUrl: "/assets/photos/photo1.webp" },
+  { id: "2", label: "SACK RACE", photoUrl: "/assets/photos/photo2.webp" },
+  { id: "3", label: "TEAM GAMES", photoUrl: "/assets/photos/photo3.webp" },
+  { id: "4", label: "TOGETHER AGAIN", photoUrl: "/assets/photos/photo4.webp" },
+  { id: "5", label: "3RD REUNION", photoUrl: "/assets/photos/photo5.webp" },
+  { id: "6", label: "BROTHERHOOD", photoUrl: "/assets/photos/photo1.webp" },
+  { id: "7", label: "SKILLS & SMILES", photoUrl: "/assets/photos/photo2.webp" },
+  { id: "8", label: "WARM-UP", photoUrl: "/assets/photos/photo3.webp" },
+  { id: "9", label: "RUN TOGETHER", photoUrl: "/assets/photos/photo4.webp" },
+  { id: "10", label: "CELEBRATE", photoUrl: "/assets/photos/photo5.webp" },
+];
+
+const {
+  tiles = defaultTiles,
+  rotationDurationSec = 45,
+  logoUrl = "/assets/logo-as-sunnah.svg",
+  titleRegular = "WELCOME",
+  titleItalic = "HOME",
+  scriptSubtitle = "Reunion 2026",
+  dateLine = "Wednesday, December 16th",
+  scheduleLine1 = "Network • Diversify • Connect • Expand • Evolve",
+  scheduleLine2 = "As-Sunnah Skill Development Institute"
+} = Astro.props;
+
+const N = tiles.length;
+const anglePerTile = 360 / N;
+
+// Dynamic Annular Sector Clip Path for arbitrary N
+function computeAnnularClipPath(n: number) {
+  const thetaHalf = 360 / n / 2;
+  const gapAngle = 0.35; // 2px radial gap between adjacent sectors
+  const thetaMax = thetaHalf - gapAngle;
+  const numArcPoints = 5;
+
+  const R_out = 50.0; // Outer radius is 50% of the bounding square
+  const R_in = (49 / (83 * 2)) * 100; // 29.518% inner disc boundary
+
+  const outerPoints: string[] = [];
+  for (let i = 0; i < numArcPoints; i++) {
+    const t = -thetaMax + (2 * thetaMax * i) / (numArcPoints - 1);
+    const rad = (t * Math.PI) / 180;
+    const x = (50.0 + R_out * Math.sin(rad)).toFixed(2);
+    const y = (50.0 - R_out * Math.cos(rad)).toFixed(2);
+    outerPoints.push(`${x}% ${y}%`);
+  }
+
+  const innerPoints: string[] = [];
+  for (let i = 0; i < numArcPoints; i++) {
+    const t = thetaMax - (2 * thetaMax * i) / (numArcPoints - 1);
+    const rad = (t * Math.PI) / 180;
+    const x = (50.0 + R_in * Math.sin(rad)).toFixed(2);
+    const y = (50.0 - R_in * Math.cos(rad)).toFixed(2);
+    innerPoints.push(`${x}% ${y}%`);
+  }
+
+  return `polygon(${[...outerPoints, ...innerPoints].join(', ')})`;
+}
+
+const dynamicClipPath = computeAnnularClipPath(N);
+---
+
+<div id="main-page" class="main-page-container">
+  <!-- S5 Rotating Wheel Container (Center at 12vw, 50vh) -->
+  <div
+    class="wheel-system"
+    style={`--wheel-n: ${N}; --wheel-rotation-duration: ${rotationDurationSec}s; --tile-clip-path: ${dynamicClipPath};`}
+  >
+    <!-- Outer 2px #5B2A9E circular outline -->
+    <div class="wheel-outer-border"></div>
+
+    <!-- Interactive Scroll / Drag Angle Offset Layer (GPU compositor transform only) -->
+    <div id="wheel-scroll-wrap" class="wheel-scroll-wrap">
+      <!-- The 1 Single Rotating Ring Element (Tiles + Label Chips) -->
+      <div
+        class="wheel-rotator"
+        id="wheel-rotator"
+      >
+      {tiles.map((tile, index) => {
+        const rotationAngle = index * anglePerTile;
+        const tileLoc = tile.location ? tile.location.trim() : '';
+        const tileLocName = tile.locationName ? tile.locationName.trim() : tileLoc;
+        const tileTime = tile.time ? tile.time.trim() : '';
+        const hasLocation = tileLoc.length > 0;
+        return (
+          <div
+            class="tile-segment"
+            style={`--tile-angle: ${rotationAngle}deg; transform: rotate(${rotationAngle}deg);`}
+          >
+            <!-- Sector Photo with Duotone SVG Filter -->
+            <div
+              class={`tile-photo-clipper ${hasLocation ? 'is-clickable' : ''}`}
+              data-tile-index={index}
+              data-label={tile.label}
+              data-location={tileLoc}
+              data-location-name={tileLocName}
+              role={hasLocation ? 'button' : undefined}
+              tabindex={hasLocation ? 0 : undefined}
+              aria-label={hasLocation ? `Open map for ${tile.label}: ${tileLocName}` : undefined}
+            >
+              <img
+                data-src={tile.photoUrl}
+                alt={tile.label}
+                class="tile-img"
+                draggable="false"
+                decoding="async"
+                width="480"
+                height="480"
+              />
+            </div>
+
+            <!-- Upright Side Badge (Always 0deg horizontal, hugged along inner side edge) -->
+            <div
+              class={`label-chip-wrapper ${hasLocation ? 'is-clickable' : ''}`}
+              data-tile-index={index}
+              data-label={tile.label}
+              data-location={tileLoc}
+              data-location-name={tileLocName}
+            >
+              <div class="label-chip-cancel-static">
+                <div class="label-chip-cancel-scroll">
+                  <div class="label-chip-cancel-rotator-deg">
+                    <div class="label-chip-cancel-spin">
+                      <div class="label-chip">
+                        <span class="label-chip-title">{tile.label}</span>
+                        <span class={`label-chip-time ${tileTime ? '' : 'hidden'}`}>{tileTime}</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        );
+      })}
+      </div>
+    </div>
+
+    <!-- Static Inner White Disc (Radius 49vw, does not rotate) -->
+    <div class="center-disc">
+      <div class="disc-content">
+        <!-- Logo -->
+        <div class="disc-logo">
+          <img src={logoUrl} alt="As-Sunnah Skill Development Institute" width="220" height="88" />
+        </div>
+
+        <!-- Title -->
+        <h2 class="disc-title">
+          {titleRegular} <span class="italic-word">{titleItalic}</span>
+        </h2>
+
+        <!-- Script Subtitle -->
+        <p class="disc-script">{scriptSubtitle}</p>
+
+        <!-- Date Line -->
+        <p class="disc-date">{dateLine}</p>
+
+        <!-- Schedule / Taglines -->
+        <div class="disc-schedule">
+          <p class="schedule-line-1">{scheduleLine1}</p>
+          <p class="schedule-line-2">{scheduleLine2}</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Soft Geolocation Permission & Google Maps Modal -->
+  <div id="map-location-modal" class="map-modal hidden" role="dialog" aria-modal="true" aria-labelledby="map-modal-title" aria-hidden="true">
+    <div class="map-modal-backdrop" id="map-modal-backdrop"></div>
+    <div class="map-modal-card">
+      <button type="button" id="map-modal-close" class="map-close-btn" aria-label="Close map dialog">&times;</button>
+
+      <div class="map-pin-badge" aria-hidden="true">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/>
+          <circle cx="12" cy="10" r="3"/>
+        </svg>
+      </div>
+
+      <h3 id="map-modal-title" class="map-modal-title">LOCATION</h3>
+      <p id="map-modal-dest" class="map-modal-dest"></p>
+      <p id="map-modal-desc" class="map-modal-desc">
+        Allow device location to view distance, travel time, and route from where you are.
+      </p>
+
+      <div class="map-modal-actions">
+        <button type="button" id="map-allow-btn" class="map-btn-primary">
+          Allow
+        </button>
+        <a id="map-deny-link" href="#" target="_blank" rel="noopener noreferrer" class="map-btn-secondary">
+          Deny
+        </a>
+        <a id="map-direct-link" href="#" target="_blank" rel="noopener noreferrer" class="map-btn-primary hidden">
+          Open Google Maps
+        </a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<style>
+  .main-page-container {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    container-type: inline-size;
+    z-index: 10;
+    background-color: #FFFFFF;
+    overflow: hidden;
+    overscroll-behavior: none;
+    touch-action: none;
+  }
+
+  .main-page-container.is-grabbing,
+  .main-page-container.is-grabbing * {
+    cursor: grabbing !important;
+  }
+
+  /* Wheel System positioned at Center (12cqw, 50vh) inside mobile/frame container */
+  /* Outer radius = 83cqw (diameter = 166cqw) */
+  .wheel-system {
+    --wheel-center-x: 12cqw;
+    --wheel-center-y: 50vh;
+    --wheel-radius-inner: 49cqw;
+    --wheel-radius-outer: 83cqw;
+    --wheel-rotation-duration: 45s;
+    --wheel-play-state: paused;
+    --wheel-scroll-deg: 0deg;
+    --wheel-rotator-deg: 0deg;
+
+    position: absolute;
+    top: var(--wheel-center-y);
+    left: var(--wheel-center-x);
+    width: calc(var(--wheel-radius-outer) * 2);
+    height: calc(var(--wheel-radius-outer) * 2);
+    transform: translate(-50%, -50%);
+    pointer-events: auto;
+    cursor: grab;
+  }
+
+  /* Thin 2px #5B2A9E outer border */
+  .wheel-outer-border {
+    position: absolute;
+    inset: 0;
+    border-radius: 50%;
+    border: 2px solid #5B2A9E;
+    pointer-events: none;
+    z-index: 15;
+  }
+
+  /* Interactive Manual Scroll/Drag Layer (Compositor only) */
+  .wheel-scroll-wrap {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    transform-origin: 50% 50%;
+    will-change: transform;
+    z-index: 5;
+    pointer-events: none;
+  }
+
+  /* Rotating GPU Element */
+  .wheel-rotator {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    animation: rotate-wheel var(--wheel-rotation-duration, 45s) linear infinite;
+    animation-play-state: var(--wheel-play-state, paused);
+    will-change: transform;
+    transform-origin: 50% 50%;
+    z-index: 5;
+    user-select: none;
+    -webkit-user-select: none;
+    touch-action: none;
+  }
+
+  .wheel-rotator.is-rotating {
+    animation-play-state: var(--wheel-play-state, running);
+  }
+
+  @keyframes rotate-wheel {
+    from {
+      transform: rotate(0deg);
+    }
+    to {
+      transform: rotate(360deg);
+    }
+  }
+
+  @keyframes counter-rotate-wheel {
+    from {
+      transform: rotate(0deg);
+    }
+    to {
+      transform: rotate(-360deg);
+    }
+  }
+
+  /* Tile Slice placed inside rotating wheel */
+  .tile-segment {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    transform-origin: 50% 50%;
+    pointer-events: none;
+  }
+
+  /* Math-precise Annular Sector Clip Path (outer 50%, inner 29.52%, dynamic arc) */
+  .tile-photo-clipper {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    clip-path: var(--tile-clip-path);
+    -webkit-clip-path: var(--tile-clip-path);
+  }
+
+  .tile-img {
+    position: absolute;
+    top: 0;
+    left: 28%;
+    width: 44%;
+    height: 32%;
+    object-fit: cover;
+    filter: url(#purple-monochrome-duotone);
+    -webkit-filter: url(#purple-monochrome-duotone);
+    -webkit-user-drag: none;
+    user-select: none;
+    pointer-events: none;
+  }
+
+  /* Upright Side Badge: inner side edge of each photo, always 0deg horizontal & readable */
+  .label-chip-wrapper {
+    position: absolute;
+    top: 10.8%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 14;
+  }
+
+  .label-chip-cancel-static {
+    transform: rotate(calc(-1 * var(--tile-angle, 0deg)));
+  }
+
+  .label-chip-cancel-scroll {
+    transform: rotate(calc(-1 * var(--wheel-scroll-deg, 0deg)));
+  }
+
+  .label-chip-cancel-rotator-deg {
+    transform: rotate(calc(-1 * var(--wheel-rotator-deg, 0deg)));
+  }
+
+  .label-chip-cancel-spin {
+    animation: var(--wheel-counter-animation, counter-rotate-wheel var(--wheel-rotation-duration, 45s) linear infinite);
+    animation-play-state: var(--wheel-play-state, paused);
+    will-change: transform;
+  }
+
+  .label-chip {
+    background: linear-gradient(135deg, rgba(43, 16, 89, 0.92), rgba(78, 36, 134, 0.88));
+    border: 1px solid rgba(255, 232, 200, 0.56);
+    border-radius: 0;
+    padding: 4px 10px;
+    display: inline-flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 2px;
+    box-shadow: 0 3px 10px rgba(32, 10, 68, 0.34), inset 0 1px 0 rgba(255, 255, 255, 0.16);
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
+    transition: transform 0.15s ease, border-color 0.15s ease;
+  }
+
+  .label-chip-wrapper.is-clickable:hover .label-chip {
+    border-color: rgba(242, 140, 30, 0.88);
+    transform: scale(1.04);
+  }
+
+  .label-chip-title {
+    font-family: -apple-system, BlinkMacSystemFont, 'Inter', 'Segoe UI', Roboto, sans-serif;
+    font-size: 1.85cqw;
+    font-weight: 700;
+    color: #FDFDF8;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    white-space: nowrap;
+    line-height: 1.1;
+  }
+
+  .label-chip-time {
+    font-family: -apple-system, BlinkMacSystemFont, 'Inter', 'Segoe UI', Roboto, sans-serif;
+    font-size: 1.55cqw;
+    font-weight: 600;
+    color: #FFE8C8;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    white-space: nowrap;
+    line-height: 1.05;
+  }
+
+  .label-chip-time.hidden {
+    display: none;
+  }
+
+  /* Static Center Disc: radius 49cqw (diameter 98cqw) */
+  .center-disc {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: calc(var(--wheel-radius-inner) * 2);
+    height: calc(var(--wheel-radius-inner) * 2);
+    transform: translate(-50%, -50%);
+    background-color: #FFFFFF;
+    border-radius: 50%;
+    box-shadow: 0 0 20px rgba(91, 42, 158, 0.08);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 20;
+    pointer-events: auto;
+    touch-action: manipulation;
+    cursor: default;
+  }
+
+  .disc-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    /* .center-disc spans -37cqw..+61cqw; align cleanly inside [+1.2cqw..+56.2cqw] visible chord */
+    padding-left: 38.2cqw;
+    padding-right: 4.8cqw;
+    width: 100%;
+    max-width: none;
+    box-sizing: border-box;
+  }
+
+  .disc-logo {
+    width: 36cqw;
+    max-width: 175px;
+    margin-bottom: 1.4cqw;
+  }
+
+  .disc-logo img {
+    width: 100%;
+    height: auto;
+    max-height: 20cqw;
+    object-fit: contain;
+    display: block;
+  }
+
+  .disc-title {
+    margin: 0;
+    max-width: 100%;
+    font-family: 'Playfair Display', Georgia, serif;
+    font-size: 5.45cqw;
+    font-weight: 700;
+    color: #3B1A6E;
+    letter-spacing: 0.055em;
+    line-height: 1.15;
+    text-transform: uppercase;
+    overflow-wrap: break-word;
+    text-wrap: balance;
+  }
+
+  .italic-word {
+    font-style: italic;
+    color: #E2780C;
+  }
+
+  .disc-script {
+    margin: 0.8cqw 0;
+    max-width: 100%;
+    font-family: 'Alex Brush', cursive;
+    font-size: 7cqw;
+    color: #F28C1E;
+    line-height: 1.05;
+  }
+
+  .disc-date {
+    margin: 0.9cqw 0;
+    max-width: 100%;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    font-size: 2.95cqw;
+    font-weight: 600;
+    color: #3B1A6E;
+    letter-spacing: 0.03em;
+    overflow-wrap: break-word;
+  }
+
+  .disc-schedule {
+    margin: 0.9cqw 0 0 0;
+    max-width: 100%;
+  }
+
+  .schedule-line-1 {
+    margin: 0;
+    max-width: 100%;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    font-size: 2.2cqw;
+    font-weight: 500;
+    color: #623096;
+    letter-spacing: 0.015em;
+    overflow-wrap: break-word;
+    text-wrap: balance;
+  }
+
+  .schedule-line-2 {
+    margin: 0.5cqw 0 0 0;
+    max-width: 100%;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    font-size: 2.2cqw;
+    font-weight: 600;
+    color: #3B1A6E;
+    letter-spacing: 0.02em;
+    overflow-wrap: break-word;
+  }
+
+  /* Interactive Clickable Sector Tiles */
+  .tile-photo-clipper.is-clickable,
+  .label-chip-wrapper.is-clickable {
+    pointer-events: auto;
+    cursor: pointer;
+  }
+
+  .tile-photo-clipper.is-clickable:focus-visible,
+  .label-chip-wrapper.is-clickable:focus-visible {
+    outline: 2px solid #F28C1E;
+    outline-offset: -3px;
+  }
+
+  /* Soft Location Permission Modal */
+  .map-modal {
+    position: fixed;
+    inset: 0;
+    z-index: 60;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    touch-action: manipulation;
+  }
+
+  .map-modal.hidden {
+    display: none !important;
+  }
+
+  .map-modal-backdrop {
+    position: absolute;
+    inset: 0;
+    background: rgba(59, 26, 110, 0.42);
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
+  }
+
+  .map-modal-card {
+    position: relative;
+    z-index: 1;
+    width: 100%;
+    max-width: 340px;
+    background: #FFFFFF;
+    border-radius: 20px;
+    padding: 24px 20px 20px 20px;
+    border: 1px solid rgba(107, 58, 168, 0.2);
+    box-shadow: 0 20px 44px rgba(59, 26, 110, 0.25);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    box-sizing: border-box;
+  }
+
+  .map-close-btn {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    min-width: 44px;
+    min-height: 44px;
+    border: none;
+    background: transparent;
+    color: #623096;
+    font-size: 24px;
+    line-height: 1;
+    cursor: pointer;
+    border-radius: 50%;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .map-close-btn:focus-visible {
+    outline: 2px solid #6B3AA8;
+    outline-offset: 2px;
+  }
+
+  .map-pin-badge {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    background: #F6F0FC;
+    color: #6B3AA8;
+    border: 1px solid rgba(107, 58, 168, 0.22);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 12px;
+  }
+
+  .map-modal-title {
+    margin: 0;
+    font-family: 'Playfair Display', Georgia, serif;
+    font-size: 18px;
+    font-weight: 700;
+    color: #3B1A6E;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+  }
+
+  .map-modal-dest {
+    margin: 4px 0 10px 0;
+    font-size: 13px;
+    font-weight: 700;
+    color: #E2780C;
+    word-break: break-word;
+  }
+
+  .map-modal-desc {
+    margin: 0 0 18px 0;
+    font-size: 13px;
+    line-height: 1.45;
+    color: #623096;
+  }
+
+  .map-modal-actions {
+    width: 100%;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+  }
+
+  #map-direct-link {
+    grid-column: 1 / -1;
+  }
+
+  .map-btn-primary,
+  .map-btn-secondary {
+    width: 100%;
+    min-height: 46px;
+    border-radius: 12px;
+    font-size: 13px;
+    font-weight: 700;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    text-decoration: none;
+    box-sizing: border-box;
+    padding: 0 16px;
+    transition: transform 0.15s ease, opacity 0.15s ease;
+  }
+
+  .map-btn-primary {
+    border: none;
+    background: #6B3AA8;
+    color: #FFFFFF;
+    box-shadow: 0 4px 12px rgba(107, 58, 168, 0.28);
+  }
+
+  .map-btn-primary:active {
+    transform: scale(0.98);
+    background: #3B1A6E;
+  }
+
+  .map-btn-primary:disabled {
+    opacity: 0.7;
+    cursor: wait;
+  }
+
+  .map-btn-secondary {
+    background: #FDFDF8;
+    color: #3B1A6E;
+    border: 1px solid rgba(107, 58, 168, 0.28);
+  }
+
+  .map-btn-primary:focus-visible,
+  .map-btn-secondary:focus-visible {
+    outline: 2px solid #F28C1E;
+    outline-offset: 2px;
+  }
+
+  .map-btn-primary.hidden,
+  .map-btn-secondary.hidden {
+    display: none !important;
+  }
+
+  /* Accessibility: Prefers Reduced Motion */
+  @media (prefers-reduced-motion: reduce) {
+    .wheel-rotator,
+    .label-chip-cancel-spin {
+      animation: none !important;
+    }
+  }
+</style>

@@ -1,0 +1,183 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "AsSunnahReunionContent",
+  "description": "Content schema for As-Sunnah Reunion Interactive Mobile Website",
+  "type": "object",
+  "required": ["version", "welcome", "centerDisc", "wheel"],
+  "additionalProperties": false,
+  "properties": {
+    "version": {
+      "type": "integer",
+      "minimum": 1,
+      "description": "Schema version number"
+    },
+    "welcome": {
+      "type": "object",
+      "required": ["line1", "line2", "finalNumber"],
+      "additionalProperties": false,
+      "properties": {
+        "line1": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 12,
+          "default": "WELCOME",
+          "description": "Top headline text on S1 Welcome Card"
+        },
+        "line2": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 12,
+          "default": "HOME",
+          "description": "Bottom headline text on S1 Welcome Card (in orange)"
+        },
+        "finalNumber": {
+          "type": "integer",
+          "minimum": 1000,
+          "maximum": 9999,
+          "default": 2026,
+          "description": "Target year integer displayed on the odometer counter"
+        },
+        "counterPhotos": {
+          "type": "array",
+          "items": { "type": "string" },
+          "minItems": 5,
+          "maxItems": 5,
+          "description": "5 WebP photos cycled inside the odometer digits"
+        },
+        "posterUrl": {
+          "type": "string",
+          "description": "URL to the Meet & Greet poster image for S3/S4"
+        }
+      }
+    },
+    "centerDisc": {
+      "type": "object",
+      "required": [
+        "logoUrl",
+        "titleRegular",
+        "titleItalic",
+        "scriptSubtitle",
+        "dateLine",
+        "scheduleLine1",
+        "scheduleLine2"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "logoUrl": {
+          "type": "string",
+          "description": "Path or URL to the As-Sunnah institute logo"
+        },
+        "titleRegular": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 12,
+          "default": "WELCOME",
+          "description": "First part of the center disc title"
+        },
+        "titleItalic": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 12,
+          "default": "HOME",
+          "description": "Italic highlight word of the center disc title"
+        },
+        "scriptSubtitle": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 25,
+          "default": "Reunion 2026",
+          "description": "Cursive script subtitle on the center disc"
+        },
+        "dateLine": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 35,
+          "default": "Wednesday, December 16th",
+          "description": "Event date line on the center disc"
+        },
+        "scheduleLine1": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 60,
+          "default": "Network • Diversify • Connect • Expand • Evolve",
+          "description": "First schedule bullet / subline"
+        },
+        "scheduleLine2": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 50,
+          "default": "As-Sunnah Skill Development Institute",
+          "description": "Institution name or second subline"
+        },
+        "buttonText": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 15,
+          "default": "RSVP",
+          "description": "Pill action button label on center disc"
+        },
+        "buttonUrl": {
+          "type": "string",
+          "default": "#",
+          "description": "Destination URL for the action button"
+        }
+      }
+    },
+    "wheel": {
+      "type": "object",
+      "required": ["rotationDurationSec", "tiles"],
+      "additionalProperties": false,
+      "properties": {
+        "rotationDurationSec": {
+          "type": "number",
+          "minimum": 10,
+          "maximum": 120,
+          "default": 45,
+          "description": "Duration in seconds for one full 360-degree rotation"
+        },
+        "tiles": {
+          "type": "array",
+          "minItems": 4,
+          "maxItems": 24,
+          "description": "List of annular photo tiles on the wheel",
+          "items": {
+            "type": "object",
+            "required": ["id", "label", "photoUrl"],
+            "additionalProperties": false,
+            "properties": {
+              "id": {
+                "type": "string",
+                "description": "Unique identifier for the tile"
+              },
+              "label": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 18,
+                "description": "Uppercase serif label along the tile radius"
+              },
+              "time": {
+                "type": "string",
+                "maxLength": 20,
+                "description": "Optional event time shown below the tile label (e.g. 7:00 AM)"
+              },
+              "photoUrl": {
+                "type": "string",
+                "description": "URL to the tile photo (WebP <= 70 KB)"
+              },
+              "location": {
+                "type": "string",
+                "maxLength": 160,
+                "description": "Optional Google Maps destination address, place name, or lat,lng coordinates"
+              },
+              "locationName": {
+                "type": "string",
+                "maxLength": 160,
+                "description": "Optional friendly display name when location stores exact coordinates"
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

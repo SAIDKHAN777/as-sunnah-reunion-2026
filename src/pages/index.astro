@@ -1,0 +1,159 @@
+---
+import WelcomeCard from '../components/WelcomeCard.astro';
+import CounterCanvas from '../components/CounterCanvas.astro';
+import PosterCard from '../components/PosterCard.astro';
+import RotatingWheel from '../components/RotatingWheel.astro';
+import DuotoneFilters from '../components/DuotoneFilters.astro';
+import '../styles/tokens.css';
+import contentData from '../../public/content.json';
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <title>As-Sunnah Reunion 2026</title>
+    <meta name="description" content="As-Sunnah Skill Development Institute Annual Grand Alumni Meet & Greet Reunion 2026." />
+    <link rel="icon" type="image/svg+xml" href="/assets/logo-as-sunnah.svg" />
+    <!-- Preload critical first-screen (S1) assets -->
+    <link rel="preload" href="/fonts/playfair-display-700-subset.woff2" as="font" type="font/woff2" crossorigin />
+    <link rel="preload" href="/fonts/alex-brush-subset.woff2" as="font" type="font/woff2" crossorigin />
+    <link rel="preload" href="/assets/welcome-card-bg.webp" as="image" type="image/webp" />
+    <link rel="preload" href="/assets/logo-as-sunnah.webp" as="image" type="image/webp" />
+
+    <style>
+      :root {
+        color-scheme: light;
+      }
+
+      *, *::before, *::after {
+        box-sizing: border-box;
+      }
+
+      html, body {
+        margin: 0;
+        padding: 0;
+        width: 100%;
+        height: 100%;
+        min-height: 100svh;
+        min-height: 100dvh;
+        overflow: hidden;
+        background-color: var(--color-counter-bg);
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+        touch-action: manipulation;
+      }
+
+      /* Mobile-First Viewport Frame (Portrait Bleed up to 768px, Max-width 480px on Wide Desktop) */
+      .app-viewport {
+        position: relative;
+        width: 100%;
+        height: 100svh;
+        height: 100dvh;
+        margin: 0 auto;
+        overflow: hidden;
+        background-color: var(--color-counter-bg);
+      }
+
+      @media (min-width: 769px) {
+        .app-viewport {
+          max-width: 480px;
+          box-shadow: 0 0 50px rgba(59, 26, 110, 0.08);
+        }
+      }
+
+      /* Skip Button (UI UX Pro Max accessible, touch target >= 44px) */
+      .skip-intro-btn {
+        position: absolute;
+        bottom: max(20px, env(safe-area-inset-bottom, 20px));
+        left: 50%;
+        transform: translateX(-50%);
+        z-index: 50;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-width: 80px;
+        min-height: 44px;
+        padding: 8px 18px;
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+        font-size: 13px;
+        font-weight: 600;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        text-decoration: none;
+        color: var(--color-purple-deep);
+        background: rgba(255, 255, 255, 0.75);
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
+        border: 1px solid rgba(107, 58, 168, 0.22);
+        border-radius: 22px;
+        box-shadow: 0 4px 14px rgba(59, 26, 110, 0.12);
+        transition: opacity 0.3s ease, transform 0.2s ease, background-color 0.2s ease;
+        cursor: pointer;
+        user-select: none;
+        -webkit-tap-highlight-color: transparent;
+      }
+
+      .skip-intro-btn:active {
+        transform: translateX(-50%) scale(0.96);
+        background: rgba(255, 255, 255, 0.9);
+      }
+
+      /* Screen Stack Visibility Defaults */
+      #welcome-card {
+        z-index: 40;
+      }
+
+      #counter-container {
+        z-index: 20;
+      }
+
+      #poster-card {
+        z-index: 30;
+      }
+
+      #main-page {
+        z-index: 10;
+      }
+    </style>
+  </head>
+  <body>
+    <!-- SVG Duotone Filter Definitions -->
+    <DuotoneFilters />
+
+    <!-- Mobile-First Max-Width 480px Viewport Frame -->
+    <main class="app-viewport">
+      <!-- S5: Permanent Main Page (Rotating Photo Wheel) -->
+      <RotatingWheel
+        tiles={contentData.wheel.tiles}
+        rotationDurationSec={contentData.wheel.rotationDurationSec}
+        logoUrl={contentData.centerDisc.logoUrl}
+        titleRegular={contentData.centerDisc.titleRegular}
+        titleItalic={contentData.centerDisc.titleItalic}
+        scriptSubtitle={contentData.centerDisc.scriptSubtitle}
+        dateLine={contentData.centerDisc.dateLine}
+        scheduleLine1={contentData.centerDisc.scheduleLine1}
+        scheduleLine2={contentData.centerDisc.scheduleLine2}
+      />
+
+      <!-- S3 / S4: Meet & Greet Poster Transition Card -->
+      <PosterCard posterUrl={contentData.welcome.posterUrl} />
+
+      <!-- S2: Counter Canvas Reel -->
+      <CounterCanvas />
+
+      <!-- S1: Welcome Card (Holds and Slides Up) -->
+      <WelcomeCard line1={contentData.welcome.line1} line2={contentData.welcome.line2} />
+
+      <!-- Accessible Skip Link -->
+      <a href="#main-page" id="skip-intro-btn" class="skip-intro-btn" role="button" aria-label="Skip Intro Animation">
+        Skip &rarr;
+      </a>
+    </main>
+
+    <!-- Master Animation Clock & Timeline Engine -->
+    <script src="../scripts/intro.ts"></script>
+  </body>
+</html>

@@ -1,0 +1,53 @@
+---
+import { DIGITS } from '../scripts/digits';
+import '../styles/tokens.css';
+---
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Digits 0-9 Test Page</title>
+  </head>
+  <body style="background-color: var(--color-counter-bg); color: var(--color-purple-deep); font-family: sans-serif; padding: 24px; text-align: center;">
+    <h1 style="color: var(--color-purple-deep); margin-bottom: 24px;">Heavy Grotesque (Inter Black Compressed 68%) Digits 0-9</h1>
+    
+    <!-- SVG Vector Grid -->
+    <div style="display: flex; flex-wrap: wrap; justify-content: center; gap: 16px; max-width: 600px; margin: 0 auto;">
+      {Object.values(DIGITS).map(d => (
+        <div style="display: flex; flex-direction: column; align-items: center; background: white; padding: 12px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.05);">
+          <svg viewBox={`0 0 ${d.width} ${d.height}`} width="60" height="88">
+            <path d={d.path} fill="var(--color-purple-deep)" fill-rule="evenodd" />
+            {d.anchor && (
+              <circle cx={d.anchor.x} cy={d.anchor.y} r={d.anchor.r} fill="none" stroke="var(--color-orange)" stroke-width="2" />
+            )}
+          </svg>
+          <span style="font-size: 12px; font-weight: bold; margin-top: 8px; color: var(--color-orange);">{d.digit}</span>
+        </div>
+      ))}
+    </div>
+
+    <!-- Canvas Test -->
+    <h2 style="color: var(--color-purple-deep); margin-top: 32px; font-size: 18px;">Canvas Path2D Test</h2>
+    <canvas id="test-canvas" width="600" height="120" style="background: white; border-radius: 8px; margin: 0 auto; display: block; box-shadow: 0 2px 8px rgba(0,0,0,0.05);"></canvas>
+
+    <script>
+      import { DIGITS } from '../scripts/digits';
+      const canvas = document.getElementById('test-canvas') as HTMLCanvasElement;
+      if (canvas) {
+        const ctx = canvas.getContext('2d');
+        if (ctx) {
+          ctx.fillStyle = '#6B3AA8';
+          Object.values(DIGITS).forEach((d, i) => {
+            const p = new Path2D(d.path);
+            ctx.save();
+            ctx.translate(15 + i * 58, 15);
+            ctx.scale(0.5, 0.6);
+            ctx.fill(p, 'evenodd');
+            ctx.restore();
+          });
+        }
+      }
+    </script>
+  </body>
+</html>

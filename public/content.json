@@ -1,0 +1,110 @@
+{
+  "version": 1,
+  "welcome": {
+    "line1": "WELCOME",
+    "line2": "HOME",
+    "finalNumber": 2026,
+    "counterPhotos": [
+      "/assets/photos/counter-photo1.webp",
+      "/assets/photos/counter-photo2.webp",
+      "/assets/photos/counter-photo3.webp",
+      "/assets/photos/counter-photo4.webp",
+      "/assets/photos/counter-photo5.webp"
+    ],
+    "posterUrl": "/assets/photos/upload_1794287670917.webp"
+  },
+  "centerDisc": {
+    "logoUrl": "/assets/photos/logo_4th_reunion_transparent_v2.webp",
+    "titleRegular": "WELCOME",
+    "titleItalic": "HOME",
+    "scriptSubtitle": "Reunion 2026",
+    "dateLine": "Wednesday, December 16th",
+    "scheduleLine1": "Network • Diversify • Connect • Expand • Evolve",
+    "scheduleLine2": "As-Sunnah Skill Development Institute"
+  },
+  "wheel": {
+    "rotationDurationSec": 45,
+    "tiles": [
+      {
+        "id": "1",
+        "label": "REPORTING",
+        "time": "7:45 AM",
+        "photoUrl": "/assets/photos/upload_1794302407901.webp",
+        "location": "23.78939,90.45921",
+        "locationName": "Satarkul, Dhaka Metropolitan"
+      },
+      {
+        "id": "2",
+        "label": "BREAKFIRST",
+        "time": "8:00 AM",
+        "photoUrl": "/assets/photos/upload_1794302798594.webp",
+        "location": "23.79080,90.46036",
+        "locationName": "Satarkul, Dhaka Metropolitan"
+      },
+      {
+        "id": "3",
+        "label": "FOOTBALL ",
+        "time": "8:45 AM",
+        "photoUrl": "/assets/photos/upload_1794302876712.webp",
+        "location": "23.78946,90.46042",
+        "locationName": "Satarkul, Dhaka Metropolitan"
+      },
+      {
+        "id": "4",
+        "label": "CRICKET",
+        "time": "8:45 AM",
+        "photoUrl": "/assets/photos/upload_1794303097986.webp",
+        "location": "23.79083,90.45897",
+        "locationName": "Satarkul, Dhaka Metropolitan"
+      },
+      {
+        "id": "5",
+        "label": "INDOOR GAME ",
+        "time": "8:45 AM",
+        "photoUrl": "/assets/photos/upload_1794303195048.webp",
+        "location": "23.78946,90.46042",
+        "locationName": "Satarkul, Dhaka Metropolitan"
+      },
+      {
+        "id": "6",
+        "label": "LUNCH",
+        "time": "1:00 PM",
+        "photoUrl": "/assets/photos/upload_1794303966764.webp",
+        "location": "23.79051,90.46064",
+        "locationName": "Satarkul, Dhaka Metropolitan"
+      },
+      {
+        "id": "8",
+        "label": "SALAH",
+        "time": "",
+        "photoUrl": "/assets/photos/upload_1794303289535.webp",
+        "location": "23.79051,90.46064",
+        "locationName": "Dhaka, Bangladesh (Drag pin or click map)"
+      },
+      {
+        "id": "9",
+        "label": "QUIZ",
+        "time": "2:30 PM",
+        "photoUrl": "/assets/photos/upload_1794303407997.webp",
+        "location": "23.78946,90.46042",
+        "locationName": "Satarkul, Dhaka Metropolitan"
+      },
+      {
+        "id": "10",
+        "label": "CULTURAL PROGRAM",
+        "time": "3:00 PM",
+        "photoUrl": "/assets/photos/upload_1794303490395.webp",
+        "location": "23.76799,90.42786",
+        "locationName": "Road No. 1, Dhaka"
+      },
+      {
+        "id": "1794303645192",
+        "label": "AWARD CEREMONY.",
+        "time": "4:45 PM",
+        "photoUrl": "/assets/photos/upload_1794303673277.webp",
+        "location": "23.76799,90.42786",
+        "locationName": "Road No. 1, Dhaka"
+      }
+    ]
+  }
+}

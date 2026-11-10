@@ -1,0 +1,27 @@
+# Cloudflare Pages Custom Cache & Security Headers
+
+# 1. Hashed Immutable JS & CSS Assets (Cache for 1 year)
+/_astro/*
+  Cache-Control: public, max-age=31536000, immutable
+  X-Content-Type-Options: nosniff
+
+# 2. Immutable Subsetted WOFF2 Fonts (Cache for 1 year)
+/fonts/*
+  Cache-Control: public, max-age=31536000, immutable
+  Access-Control-Allow-Origin: *
+
+# 3. Optimized Media & Icons (Cache for 7 days with stale-while-revalidate)
+/assets/*
+  Cache-Control: public, max-age=604800, stale-while-revalidate=86400
+
+# 4. Dynamic Site Content Configuration (Short 60s client, 300s edge cache)
+/content.json
+  Cache-Control: public, max-age=60, s-maxage=300, must-revalidate
+  Content-Type: application/json; charset=utf-8
+  Access-Control-Allow-Origin: *
+
+# 5. Global HTML & Security Headers
+/*
+  X-Content-Type-Options: nosniff
+  X-Frame-Options: SAMEORIGIN
+  Referrer-Policy: strict-origin-when-cross-origin

@@ -1,0 +1,33 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 1280" width="720" height="1280" fill="none">
+  <!-- Organic Floral and Botanical Contour Lines -->
+  <g stroke="#FFFFFF" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" opacity="0.95">
+    <!-- Top-Left Corner Botanical Vines & Petals -->
+    <path d="M -20 -20 Q 80 120 40 260 T 160 420 Q 220 300 180 180 T 60 -10 Z" />
+    <path d="M 0 100 C 140 120 200 40 280 10 C 220 80 180 190 80 220 Z" />
+    <path d="M 20 280 C 120 260 160 380 260 360 C 200 420 100 440 20 360 Z" />
+    <path d="M 120 40 C 200 100 320 60 380 -20 C 320 40 260 140 180 160 Z" />
+
+    <!-- Top-Right Botanical Lines -->
+    <path d="M 740 -20 Q 640 140 680 280 T 560 440 Q 500 320 540 200 T 660 -10 Z" />
+    <path d="M 720 120 C 580 140 520 60 440 30 C 500 100 540 210 640 240 Z" />
+    <path d="M 700 300 C 600 280 560 400 460 380 C 520 440 620 460 700 380 Z" />
+
+    <!-- Delicate Petal Curves -->
+    <path d="M 30 180 Q 140 160 180 240 Q 80 280 30 180 Z" />
+    <path d="M 690 200 Q 580 180 540 260 Q 640 300 690 200 Z" />
+
+    <!-- Bottom-Left Decorative Flora -->
+    <path d="M -30 1300 Q 120 1140 60 980 T 220 800 Q 140 940 180 1100 T -10 1280 Z" />
+    <path d="M 40 1120 C 160 1100 220 1220 340 1180 C 260 1240 140 1260 40 1180 Z" />
+    <path d="M 10 940 C 120 960 180 840 280 880 C 200 920 140 1040 20 1020 Z" />
+
+    <!-- Bottom-Right Decorative Flora -->
+    <path d="M 750 1300 Q 600 1140 660 980 T 500 800 Q 580 940 540 1100 T 730 1280 Z" />
+    <path d="M 680 1120 C 560 1100 500 1220 380 1180 C 460 1240 580 1260 680 1180 Z" />
+    <path d="M 710 940 C 600 960 540 840 440 880 C 520 920 580 1040 700 1020 Z" />
+
+    <!-- Outer Edge Tendrils -->
+    <path d="M 0 540 C 90 520 110 620 190 600 C 130 660 70 660 0 620 Z" />
+    <path d="M 720 560 C 630 540 610 640 530 620 C 590 680 650 680 720 640 Z" />
+  </g>
+</svg>

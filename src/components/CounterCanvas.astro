@@ -1,0 +1,28 @@
+---
+---
+<div id="counter-container" class="counter-canvas-wrapper">
+  <canvas id="counter-canvas"></canvas>
+</div>
+
+<style>
+  .counter-canvas-wrapper {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 20;
+    background-color: #FDFDF8;
+    overflow: hidden;
+    will-change: opacity, transform;
+    pointer-events: none;
+  }
+
+  #counter-canvas {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    display: block;
+  }
+</style>

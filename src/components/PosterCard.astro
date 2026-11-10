@@ -1,0 +1,70 @@
+---
+interface Props {
+  posterUrl?: string;
+}
+
+const { posterUrl = "/assets/meet-greet-poster.webp" } = Astro.props;
+---
+
+<div id="poster-card" class="poster-card-container">
+  <!-- Poster Image (2:3 aspect ratio, 100vw wide, vertically centered, #FFFFFF letterbox) -->
+  <div class="poster-wrapper">
+    <img src={posterUrl} alt="Meet & Greet Poster" class="poster-img" />
+  </div>
+
+  <!-- S4 Right Edge FX (Vertical 3px Gradient Line + Glow + Shadow) -->
+  <div class="right-edge-fx"></div>
+</div>
+
+<style>
+  .poster-card-container {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 30;
+    background-color: #FFFFFF;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: visible;
+    will-change: transform, opacity, filter;
+    opacity: 0;
+    pointer-events: none;
+  }
+
+  .poster-wrapper {
+    position: relative;
+    width: 100%;
+    max-width: 480px;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: #FFFFFF;
+  }
+
+  .poster-img {
+    width: 100%;
+    height: auto;
+    max-height: 100%;
+    aspect-ratio: 2 / 3;
+    object-fit: contain;
+    display: block;
+  }
+
+  .right-edge-fx {
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 3px;
+    height: 100%;
+    background: linear-gradient(to bottom, #6B3AA8 0%, #F28C1E 100%);
+    box-shadow: 
+      0 0 14px rgba(242, 140, 30, 0.65),
+      30px 0 80px rgba(0, 0, 0, 0.35);
+    pointer-events: none;
+    opacity: 0;
+  }
+</style>

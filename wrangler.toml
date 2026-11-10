@@ -1,0 +1,13 @@
+name = "as-sunnah-reunion"
+compatibility_date = "2026-11-01"
+pages_build_output_dir = "dist"
+
+# KV Namespace binding for dynamic /content.json
+# [[kv_namespaces]]
+# binding = "CONTENT_KV"
+# id = "content_kv_id"
+
+# R2 Media Bucket binding for photo uploads
+# [[r2_buckets]]
+# binding = "MEDIA_BUCKET"
+# bucket_name = "as-sunnah-assets"
