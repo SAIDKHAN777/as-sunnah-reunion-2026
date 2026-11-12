@@ -113,6 +113,7 @@ const dynamicClipPath = computeAnnularClipPath(N);
             <div
               class={`tile-photo-clipper ${hasLocation ? 'is-clickable' : ''}`}
               data-tile-index={index}
+              data-tile-id={tile.id}
               data-label={tile.label}
               data-location={tileLoc}
               data-location-name={tileLocName}
@@ -135,6 +136,7 @@ const dynamicClipPath = computeAnnularClipPath(N);
             <div
               class={`label-chip-wrapper ${hasLocation ? 'is-clickable' : ''}`}
               data-tile-index={index}
+              data-tile-id={tile.id}
               data-label={tile.label}
               data-location={tileLoc}
               data-location-name={tileLocName}

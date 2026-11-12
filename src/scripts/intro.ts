@@ -164,7 +164,9 @@ export function initIntro() {
           }
           const loc = typeof tile.location === 'string' ? tile.location.trim() : '';
           const locName = typeof tile.locationName === 'string' && tile.locationName.trim() ? tile.locationName.trim() : loc;
+          const tid = tile.id !== undefined ? String(tile.id) : '';
           if (tileClippers[idx]) {
+            tileClippers[idx].dataset.tileId = tid;
             tileClippers[idx].dataset.location = loc;
             tileClippers[idx].dataset.locationName = locName;
             tileClippers[idx].dataset.label = tile.label || `Tile #${idx + 1}`;
@@ -172,7 +174,7 @@ export function initIntro() {
             if (loc) {
               tileClippers[idx].setAttribute('role', 'button');
               tileClippers[idx].setAttribute('tabindex', '0');
-              tileClippers[idx].setAttribute('aria-label', `Directions to ${locName}`);
+              tileClippers[idx].setAttribute('aria-label', `View campus map for ${locName}`);
             } else {
               tileClippers[idx].removeAttribute('role');
               tileClippers[idx].removeAttribute('tabindex');
@@ -180,6 +182,7 @@ export function initIntro() {
             }
           }
           if (chipWrappers[idx]) {
+            chipWrappers[idx].dataset.tileId = tid;
             chipWrappers[idx].dataset.location = loc;
             chipWrappers[idx].dataset.locationName = locName;
             chipWrappers[idx].dataset.label = tile.label || `Tile #${idx + 1}`;
@@ -196,23 +199,19 @@ export function initIntro() {
   // Reduced motion check (hoisted so wheel map handler respects it)
   const isReducedMotion = typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
-  // Instant Direct Google Maps Directions (0ms click -> map open, no blocking GPS wait or modal)
-  function buildGoogleMapsInstantDirectionsUrl(destination: string): string {
-    return `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(destination)}&travelmode=driving`;
-  }
-
   let suppressNextClickUntil = 0;
 
   function handleTileSelection(targetEl: HTMLElement | null) {
     const clickable = targetEl?.closest('.tile-photo-clipper.is-clickable, .label-chip-wrapper.is-clickable') as HTMLElement | null;
     if (!clickable) return;
-    const dest = clickable.dataset.location?.trim();
-    if (!dest) return;
-    const mapsUrl = buildGoogleMapsInstantDirectionsUrl(dest);
-    const w = window.open(mapsUrl, '_blank', 'noopener,noreferrer');
-    if (!w) {
-      window.location.href = mapsUrl;
-    }
+    const tileId = clickable.dataset.tileId?.trim() || '';
+    const dest = clickable.dataset.location?.trim() || '';
+    const label = clickable.dataset.label?.trim() || '';
+    window.dispatchEvent(
+      new CustomEvent('as-sunnah:open-map', {
+        detail: { tileId, dest, label },
+      })
+    );
   }
 
   if (wheelRotator) {
@@ -398,11 +397,13 @@ export function initIntro() {
   });
 
   // Check query parameter ?t=SECONDS for deterministic testing / screenshots (only in debug/dev mode)
+  // Ignore HH:MM values so ?t=08:50 can simulate the map schedule clock cleanly.
   const isDebugMode = import.meta.env.DEV || import.meta.env.PUBLIC_DEBUG_MODE === 'true';
   const urlParams = typeof window !== 'undefined' ? new URLSearchParams(window.location.search) : null;
   const tParam = (isDebugMode && urlParams) ? urlParams.get('t') : null;
-  const isDebugFreeze = isDebugMode && tParam !== null;
-  const freezeTime = isDebugFreeze ? Math.max(0, parseFloat(tParam)) : 0;
+  const isNumericDebugParam = tParam !== null && /^\d+(?:\.\d+)?$/.test(tParam.trim());
+  const isDebugFreeze = isDebugMode && isNumericDebugParam;
+  const freezeTime = isDebugFreeze ? Math.max(0, parseFloat(tParam!)) : 0;
 
   // Session played check
   const isSessionSeen = typeof sessionStorage !== 'undefined' && sessionStorage.getItem('as_sunnah_intro_seen') === 'true';

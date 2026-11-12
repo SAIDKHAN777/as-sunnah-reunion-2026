@@ -14,9 +14,6 @@ import '../styles/tokens.css';
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,600;0,700;1,600&family=Alex+Brush&display=swap" rel="stylesheet" />
-    <!-- Interactive Drag-and-Drop Map Picker (Leaflet, Admin-only, 0 Bytes in public pages) -->
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.css" crossorigin="" />
-    <script src="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.js" crossorigin="" defer></script>
   </head>
   <body>
     <!-- Include SVG Duotone Filters for Tile Crop Preview -->
@@ -51,6 +48,9 @@ import '../styles/tokens.css';
             <button type="button" class="tab-btn" data-tab="tab-intro" role="tab" aria-selected="false">
               <span class="tab-icon">🎬</span>
               <span>Intro & Cards</span>
+            </button>
+            <button type="button" class="tab-btn" data-tab="tab-maplibre" role="tab" aria-selected="false">
+              <span>MapLibre Map</span>
             </button>
           </nav>
 
@@ -428,29 +428,79 @@ import '../styles/tokens.css';
             </div>
           </div>
         </section>
+
+        <!-- ========================================================= -->
+        <!-- TAB 4: MAPLIBRE MAP (2-Column Desktop Grid)               -->
+        <!-- ========================================================= -->
+        <section id="tab-maplibre" class="tab-pane hidden" role="tabpanel">
+          <div class="desktop-split-layout">
+            <aside class="sidebar-column">
+              <div class="admin-card">
+                <div class="card-header border-b pb-3 mb-3">
+                  <div>
+                    <h2 class="card-title text-base">Campus Locations (6)</h2>
+                    <p class="card-desc">Select a spot and click on MapLibre to update its pin, or open in Google Maps</p>
+                  </div>
+                  <button type="button" id="tab-maplibre-download-btn" class="btn-upload-inline small">
+                    Download JSON
+                  </button>
+                </div>
+                <div id="tab-maplibre-places-list" class="form-stack"></div>
+              </div>
+            </aside>
+
+            <div class="content-column">
+              <div class="admin-card">
+                <div class="card-header border-b pb-3 mb-3">
+                  <div>
+                    <h2 class="card-title text-base">MapLibre Campus &amp; Park Map</h2>
+                    <p class="card-desc">Interactive offline-ready MapLibre terrain with 6 custom venue pins and walking paths</p>
+                  </div>
+                  <div class="maplibre-tab-toolbar">
+                    <button type="button" id="tab-maplibre-campus-btn" class="btn-action secondary">Campus View</button>
+                    <button type="button" id="tab-maplibre-3d-btn" class="btn-action secondary" aria-pressed="false">3D</button>
+                  </div>
+                </div>
+
+                <div class="maplibre-time-strip">
+                  <span class="field-label" style="margin: 0;">Preview Clock:</span>
+                  <button type="button" class="btn-upload-inline small js-tab-map-time" data-sim-time="07:45">7:45 AM</button>
+                  <button type="button" class="btn-upload-inline small js-tab-map-time active" data-sim-time="08:50">8:50 AM</button>
+                  <button type="button" class="btn-upload-inline small js-tab-map-time" data-sim-time="13:10">1:10 PM</button>
+                  <button type="button" class="btn-upload-inline small js-tab-map-time" data-sim-time="15:15">3:15 PM</button>
+                  <button type="button" class="btn-upload-inline small js-tab-map-time" data-sim-time="16:55">4:55 PM</button>
+                </div>
+
+                <div id="tab-maplibre-canvas" class="tab-maplibre-canvas"></div>
+              </div>
+            </div>
+          </div>
+        </section>
       </main>
 
-      <!-- Interactive Drag-and-Drop Map Picker Modal -->
+      <!-- Interactive Drag-and-Drop MapLibre + Google Maps Picker Modal -->
       <div id="map-picker-modal" class="map-picker-modal hidden" role="dialog" aria-modal="true" aria-labelledby="map-picker-title">
         <div class="map-picker-card">
           <div class="map-picker-header">
             <div>
-              <h3 id="map-picker-title" class="modal-title">🗺️ Pick Location on Map</h3>
-              <p class="text-xs text-[#623096]/80">Search place, click on map, or drag &amp; drop the pin to exact spot</p>
+              <h3 id="map-picker-title" class="modal-title">Pick Location on MapLibre</h3>
+              <p class="text-xs text-[#623096]/80">Select a campus spot below, click or drag pin on MapLibre, or open Google Maps</p>
             </div>
             <div class="map-picker-header-right">
-              <a id="map-picker-external-gmap" href="https://www.google.com/maps/@23.8103,90.4125,12z" target="_blank" rel="noopener noreferrer" class="btn-upload-inline small" title="Open Google Maps to find/copy coordinates">
-                ↗ Open Google Maps
+              <a id="map-picker-external-gmap" href="https://www.google.com/maps/@23.79015,90.45985,17z" target="_blank" rel="noopener noreferrer" class="btn-upload-inline small" title="Open Google Maps to find/copy coordinates">
+                Open Google Maps
               </a>
               <button type="button" id="close-map-picker-btn" class="close-btn" aria-label="Close">&times;</button>
             </div>
           </div>
 
           <div class="map-search-bar">
-            <input type="text" id="map-search-input" class="admin-input" placeholder="Search area (e.g. Narayanganj, Badda Dhaka) or paste Google Maps URL..." />
-            <button type="button" id="btn-map-search" class="btn-action primary">🔍 Find</button>
-            <button type="button" id="btn-map-my-loc" class="btn-action secondary" title="Center map on your current location">📍 My Loc</button>
+            <input type="text" id="map-search-input" class="admin-input" placeholder="Search area or paste Google Maps URL / coordinates..." />
+            <button type="button" id="btn-map-search" class="btn-action primary">Find</button>
+            <button type="button" id="btn-map-my-loc" class="btn-action secondary" title="Center map on your current location">My Loc</button>
           </div>
+
+          <div id="maplibre-spot-chips" class="maplibre-spot-chips"></div>
 
           <div id="leaflet-map-container" class="leaflet-map-container">
             <div id="leaflet-map"></div>
@@ -458,12 +508,12 @@ import '../styles/tokens.css';
 
           <div class="map-picker-footer">
             <div class="map-picked-summary">
-              <span class="badge-purple" id="map-picked-coords">23.81030, 90.41250</span>
-              <span class="map-picked-address" id="map-picked-address">Dhaka, Bangladesh (Drag pin or click map to adjust)</span>
+              <span class="badge-purple" id="map-picked-coords">23.79015, 90.45985</span>
+              <span class="map-picked-address" id="map-picked-address">Satarkul Campus (Click spot or drag pin to adjust)</span>
             </div>
             <div class="map-picker-footer-actions">
               <button type="button" id="btn-cancel-map-picker" class="btn-action secondary">Cancel</button>
-              <button type="button" id="btn-confirm-map-location" class="btn-save-now large">✅ Use This Location</button>
+              <button type="button" id="btn-confirm-map-location" class="btn-save-now large">Use This Location</button>
             </div>
           </div>
         </div>
@@ -1788,6 +1838,69 @@ import '../styles/tokens.css';
     flex-shrink: 0;
   }
 
+  .maplibre-spot-chips {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 20px;
+    background: #F6F0FC;
+    border-bottom: 1px solid rgba(107, 58, 168, 0.12);
+  }
+
+  .maplibre-chip-btn {
+    padding: 5px 10px;
+    border-radius: 999px;
+    border: 1px solid rgba(107, 58, 168, 0.28);
+    background: var(--color-white);
+    color: var(--color-purple-deep);
+    font-size: 12px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.15s ease;
+  }
+
+  .maplibre-chip-btn:hover,
+  .maplibre-chip-btn.is-active {
+    background: var(--color-purple);
+    color: var(--color-white);
+    border-color: var(--color-purple);
+  }
+
+  .maplibre-tab-toolbar {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .maplibre-tab-toolbar .is-active {
+    background: var(--color-orange);
+    color: var(--color-white);
+    border-color: var(--color-orange);
+  }
+
+  .maplibre-time-strip {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 12px;
+  }
+
+  .maplibre-time-strip .active {
+    background: var(--color-purple);
+    color: var(--color-white);
+  }
+
+  .tab-maplibre-canvas {
+    width: 100%;
+    height: 540px;
+    border-radius: 14px;
+    overflow: hidden;
+    border: 1px solid rgba(107, 58, 168, 0.2);
+    background: #426C2C;
+  }
+
   /* Responsive Fallback for smaller screens */
   @media (max-width: 960px) {
     .desktop-split-layout {
@@ -1908,7 +2021,7 @@ import '../styles/tokens.css';
 
   // Tab Navigation
   document.querySelectorAll('.tab-btn').forEach(btn => {
-    btn.addEventListener('click', () => {
+    btn.addEventListener('click', async () => {
       document.querySelectorAll('.tab-btn').forEach(b => {
         b.classList.remove('active');
         b.setAttribute('aria-selected', 'false');
@@ -1919,6 +2032,11 @@ import '../styles/tokens.css';
       btn.setAttribute('aria-selected', 'true');
       const targetId = btn.dataset.tab;
       document.getElementById(targetId)?.classList.remove('hidden');
+
+      if (targetId === 'tab-maplibre') {
+        const bridge = await ensureMapLibreBridge();
+        if (bridge) await bridge.mountTabMap();
+      }
     });
   });
 
@@ -2827,14 +2945,21 @@ import '../styles/tokens.css';
     return null;
   }
 
-  // Interactive Drag-and-Drop Leaflet Map Picker Controller
+  // Interactive Drag-and-Drop MapLibre + Google Maps Picker Controller
   let mapPickerTileIdx = null;
-  let leafletMap = null;
-  let leafletMarker = null;
-  let pickedLat = 23.8103;
-  let pickedLng = 90.4125;
-  let pickedAddressName = 'Dhaka, Bangladesh';
+  let pickedLat = 23.79015;
+  let pickedLng = 90.45985;
+  let pickedAddressName = 'Satarkul Campus';
   let reverseGeocodeTimer = null;
+
+  async function ensureMapLibreBridge() {
+    if (window.__adminMapLibre) return window.__adminMapLibre;
+    const deadline = Date.now() + 5000;
+    while (!window.__adminMapLibre && Date.now() < deadline) {
+      await new Promise((r) => setTimeout(r, 40));
+    }
+    return window.__adminMapLibre || null;
+  }
 
   const mapPickerModal = document.getElementById('map-picker-modal');
   const mapPickerTitle = document.getElementById('map-picker-title');
@@ -2842,6 +2967,40 @@ import '../styles/tokens.css';
   const mapPickedCoordsEl = document.getElementById('map-picked-coords');
   const mapPickedAddrEl = document.getElementById('map-picked-address');
   const mapExternalGmap = document.getElementById('map-picker-external-gmap');
+  const mapSpotChipsEl = document.getElementById('maplibre-spot-chips');
+
+  function renderModalSpotChips(bridge, activeCoords) {
+    if (!mapSpotChipsEl || !bridge) return;
+    const places = bridge.getCampusPlacesSummary();
+    mapSpotChipsEl.innerHTML = [
+      '<span class="field-label" style="margin-right: 4px;">Campus Spots:</span>',
+      ...places.map((p) => {
+        const isMatch =
+          activeCoords &&
+          typeof p.lat === 'number' &&
+          typeof p.lng === 'number' &&
+          Math.abs(p.lat - activeCoords.lat) < 0.0002 &&
+          Math.abs(p.lng - activeCoords.lng) < 0.0002;
+        return `<button type="button" class="maplibre-chip-btn ${isMatch ? 'is-active' : ''}" data-spot-id="${p.id}" data-lat="${p.lat}" data-lng="${p.lng}" data-label="${escapeHtml(p.nameBn)} (${escapeHtml(p.nameEn)})">${escapeHtml(p.nameBn)}</button>`;
+      }),
+      '<button type="button" class="maplibre-chip-btn" data-reset-campus="1">Campus View</button>',
+    ].join('');
+
+    mapSpotChipsEl.querySelectorAll('[data-spot-id]').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        const lat = parseFloat(btn.dataset.lat);
+        const lng = parseFloat(btn.dataset.lng);
+        const label = btn.dataset.label || '';
+        mapSpotChipsEl.querySelectorAll('.maplibre-chip-btn').forEach((b) => b.classList.remove('is-active'));
+        btn.classList.add('is-active');
+        moveMapPinTo(lat, lng, 17.8, label);
+      });
+    });
+
+    mapSpotChipsEl.querySelector('[data-reset-campus="1"]')?.addEventListener('click', () => {
+      bridge.flyPickerToCampus();
+    });
+  }
 
   function updateExternalGoogleMapLink(lat, lng) {
     if (mapExternalGmap) {
@@ -2887,12 +3046,9 @@ import '../styles/tokens.css';
     }, 220);
   }
 
-  function moveMapPinTo(lat, lng, zoom = 15, presetAddress = null) {
+  function moveMapPinTo(lat, lng, zoom = 17.4, presetAddress = null) {
     updatePickedPin(lat, lng, presetAddress);
-    if (leafletMap && leafletMarker) {
-      leafletMarker.setLatLng([lat, lng]);
-      leafletMap.setView([lat, lng], zoom);
-    }
+    window.__adminMapLibre?.movePickerPin(lat, lng, zoom);
   }
 
   async function searchPlaceOnMap(rawQuery) {
@@ -2930,15 +3086,10 @@ import '../styles/tokens.css';
   }
 
   async function openAdminMapPicker(tileIdx) {
-    if (typeof window.L === 'undefined') {
-      showToast('Interactive map could not load (check internet) — paste area name or Google Maps link directly.', 'error');
-      return;
-    }
-
     mapPickerTileIdx = tileIdx;
     const tile = content.wheel.tiles[tileIdx];
     if (mapPickerTitle) {
-      mapPickerTitle.textContent = `🗺️ Pick Location — #${tileIdx + 1} ${tile?.label || 'Tile'}`;
+      mapPickerTitle.textContent = `Pick Location (MapLibre) — #${tileIdx + 1} ${tile?.label || 'Tile'}`;
     }
 
     const existing = (tile?.location || '').trim();
@@ -2946,38 +3097,28 @@ import '../styles/tokens.css';
 
     mapPickerModal?.classList.remove('hidden');
 
-    if (!leafletMap) {
-      leafletMap = window.L.map('leaflet-map').setView([pickedLat, pickedLng], 12);
-      window.L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        maxZoom: 19,
-        attribution: '&copy; OpenStreetMap contributors'
-      }).addTo(leafletMap);
-
-      leafletMarker = window.L.marker([pickedLat, pickedLng], { draggable: true }).addTo(leafletMap);
-
-      leafletMarker.on('dragend', () => {
-        const pos = leafletMarker.getLatLng();
-        updatePickedPin(pos.lat, pos.lng);
-      });
-
-      leafletMap.on('click', (e) => {
-        leafletMarker.setLatLng(e.latlng);
-        updatePickedPin(e.latlng.lat, e.latlng.lng);
-      });
+    const bridge = await ensureMapLibreBridge();
+    if (!bridge) {
+      showToast('MapLibre failed to initialize — paste Google Maps URL directly.', 'error');
+      return;
     }
 
-    setTimeout(() => {
-      leafletMap?.invalidateSize();
-    }, 80);
-
-    // Center map on existing tile location if set
     const parsed = extractCoordsFromText(existing);
+    await bridge.ensurePickerMap({
+      containerId: 'leaflet-map',
+      initialLat: parsed ? parsed.lat : pickedLat,
+      initialLng: parsed ? parsed.lng : pickedLng,
+      onChange: updatePickedPin,
+    });
+
+    renderModalSpotChips(bridge, parsed);
+
     if (parsed) {
-      moveMapPinTo(parsed.lat, parsed.lng, 15, tile?.locationName || null);
+      moveMapPinTo(parsed.lat, parsed.lng, 17.5, tile?.locationName || null);
     } else if (existing) {
       await searchPlaceOnMap(existing);
     } else {
-      moveMapPinTo(23.8103, 90.4125, 12, 'Dhaka, Bangladesh (Drag pin or click map)');
+      moveMapPinTo(23.79015, 90.45985, 17.2, 'Satarkul Campus (Click spot or drag pin)');
     }
   }
 
@@ -3055,4 +3196,7 @@ import '../styles/tokens.css';
   if (new URLSearchParams(window.location.search).get('auth') === 'open') {
     authModal?.classList.remove('hidden');
   }
+</script>
+<script>
+  import '../scripts/admin-maplibre';
 </script>

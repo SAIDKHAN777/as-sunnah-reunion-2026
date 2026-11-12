@@ -4,6 +4,7 @@ import CounterCanvas from '../components/CounterCanvas.astro';
 import PosterCard from '../components/PosterCard.astro';
 import RotatingWheel from '../components/RotatingWheel.astro';
 import DuotoneFilters from '../components/DuotoneFilters.astro';
+import EventMap from '../components/EventMap.astro';
 import '../styles/tokens.css';
 import contentData from '../../public/content.json';
 ---
@@ -151,9 +152,19 @@ import contentData from '../../public/content.json';
       <a href="#main-page" id="skip-intro-btn" class="skip-intro-btn" role="button" aria-label="Skip Intro Animation">
         Skip &rarr;
       </a>
+
+      <!-- Lazy-Loaded Interactive Campus Map -->
+      <EventMap />
     </main>
 
     <!-- Master Animation Clock & Timeline Engine -->
     <script src="../scripts/intro.ts"></script>
+    <script is:inline>
+      if ('serviceWorker' in navigator) {
+        window.addEventListener('load', function () {
+          navigator.serviceWorker.register('/sw.js').catch(function () {});
+        });
+      }
+    </script>
   </body>
 </html>

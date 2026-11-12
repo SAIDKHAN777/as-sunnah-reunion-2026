@@ -1,0 +1,746 @@
+---
+/**
+ * EventMap.astro
+ * Phase A: Lazy-loaded realistic MapLibre campus map modal with procedural terrain & sports pitch layers,
+ * smart non-overlapping Bengali label chips, off-screen Auditorium edge indicator arrow chip,
+ * walking distance from reporting, GeoLocation dot, 3D tilt toggle, and single Google Maps link in reporting card.
+ */
+---
+
+<section
+  id="event-map-sheet"
+  class="event-map-sheet hidden"
+  role="dialog"
+  aria-modal="true"
+  aria-labelledby="event-map-title"
+>
+  <header class="event-map-header">
+    <div class="event-map-heading">
+      <h2 id="event-map-title" class="event-map-title">ক্যাম্পাস ও ভেন্যু ম্যাপ</h2>
+      <p id="event-map-clock-banner" class="event-map-subtitle">আস-সুন্নাহ রিইউনিয়ন ২০২৬</p>
+    </div>
+
+    <button
+      type="button"
+      id="event-map-close-btn"
+      class="event-map-close-btn"
+      aria-label="ম্যাপ বন্ধ করুন"
+    >
+      &times;
+    </button>
+  </header>
+
+  <div class="map-legend-strip" aria-label="পিন অবস্থার নির্দেশিকা">
+    <span class="legend-item"><span class="legend-dot is-live"></span>চলছে (Live)</span>
+    <span class="legend-item"><span class="legend-dot is-locked"></span>আসছে (Locked)</span>
+    <span class="legend-item"><span class="legend-dot is-done"></span>শেষ (Done)</span>
+    <span class="legend-hint">পিনে ট্যাপ করুন</span>
+  </div>
+
+  <div id="event-map-canvas" class="event-map-canvas" aria-busy="false">
+    <div id="event-map-gl" class="event-map-gl"></div>
+
+    <!-- Projected non-overlapping Bengali label chips & off-screen Auditorium edge chip -->
+    <div id="event-map-labels" class="map-labels-layer" aria-live="off"></div>
+    <button
+      type="button"
+      id="event-map-edge-chip"
+      class="map-edge-chip hidden"
+      aria-label="অফ-স্ক্রিন ভেন্যুতে যান"
+    >
+      <span class="edge-arrow-wrap" aria-hidden="true">
+        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M5 12h14" />
+          <path d="M13 6l6 6-6 6" />
+        </svg>
+      </span>
+      <span id="event-map-edge-text" class="edge-chip-text">অডিটোরিয়াম</span>
+    </button>
+
+    <!-- Floating Quick Location & View Controls (>= 44px touch targets) -->
+    <div class="map-floating-controls">
+      <button
+        type="button"
+        id="event-map-locate-btn"
+        class="map-ctrl-pill"
+        aria-label="আমার অবস্থান দেখান"
+      >
+        <span class="user-dot-indicator" aria-hidden="true"></span>
+        <span>আমার অবস্থান</span>
+      </button>
+      <button
+        type="button"
+        id="event-map-campus-btn"
+        class="map-ctrl-pill"
+        aria-label="ক্যাম্পাসে ফিরুন"
+      >
+        <span>ভেন্যু</span>
+      </button>
+      <button
+        type="button"
+        id="event-map-3d-btn"
+        class="map-ctrl-pill"
+        aria-pressed="false"
+        aria-label="3D ভিউ টগল করুন"
+      >
+        <span>3D</span>
+      </button>
+    </div>
+
+    <!-- Dedicated >= 44px Zoom Rail -->
+    <div class="map-zoom-rail" role="group" aria-label="জুম নিয়ন্ত্রণ">
+      <button type="button" id="event-map-zoom-in" class="map-zoom-btn" aria-label="জুম ইন করুন">+</button>
+      <button type="button" id="event-map-zoom-out" class="map-zoom-btn" aria-label="জুম আউট করুন">-</button>
+    </div>
+
+    <!-- Friendly Non-Blocking Notice (Location denied / 3D guard) -->
+    <div
+      id="event-map-geo-notice"
+      class="map-geo-notice hidden"
+      role="status"
+      aria-live="polite"
+    >
+      <p id="event-map-geo-text" class="map-geo-text"></p>
+      <button
+        type="button"
+        id="event-map-geo-dismiss"
+        class="map-geo-dismiss"
+        aria-label="বার্তা বন্ধ করুন"
+      >
+        &times;
+      </button>
+    </div>
+
+    <div id="event-map-placeholder" class="event-map-placeholder">
+      <p class="placeholder-title">ম্যাপ লোড হচ্ছে...</p>
+      <p id="event-map-placeholder-status" class="placeholder-status">
+        ভেন্যু পিন ও হাঁটার পথ প্রস্তুত করা হচ্ছে।
+      </p>
+    </div>
+
+    <!-- Bottom-Sheet Card for Tapped Pin Details -->
+    <div
+      id="event-map-bottom-sheet"
+      class="map-bottom-sheet hidden"
+      role="region"
+      aria-labelledby="sheet-place-bn"
+    >
+      <div class="bottom-sheet-top">
+        <div class="bottom-sheet-titles">
+          <div class="bottom-sheet-name-row">
+            <h3 id="sheet-place-bn" class="sheet-place-bn">ভেন্যু</h3>
+            <span id="sheet-status-badge" class="sheet-status-pill">LIVE</span>
+          </div>
+          <p id="sheet-place-en" class="sheet-place-en">Venue Spot</p>
+          <p id="sheet-walk-info" class="sheet-walk-info hidden"></p>
+        </div>
+
+        <button
+          type="button"
+          id="sheet-close-btn"
+          class="sheet-close-btn"
+          aria-label="কার্ড বন্ধ করুন"
+        >
+          &times;
+        </button>
+      </div>
+
+      <div id="sheet-sessions-list" class="sheet-sessions-list"></div>
+
+      <!-- Small text link shown ONLY inside reporting/main-entry card -->
+      <div id="sheet-reporting-gmap-wrap" class="sheet-reporting-gmap-wrap hidden">
+        <a
+          id="sheet-reporting-gmap-link"
+          href="https://www.google.com/maps/search/?api=1&query=23.78939,90.45921"
+          target="_blank"
+          rel="noopener noreferrer"
+          class="sheet-gmap-link"
+        >
+          গুগল ম্যাপে খুলুন
+        </a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<script>
+  const sheetEl = document.getElementById('event-map-sheet');
+  const closeBtn = document.getElementById('event-map-close-btn');
+
+  closeBtn?.addEventListener('click', () => {
+    sheetEl?.classList.add('hidden');
+  });
+
+  window.addEventListener('as-sunnah:open-map', async (ev: Event) => {
+    const detail = (ev as CustomEvent).detail || {};
+    sheetEl?.classList.remove('hidden');
+    const { bindEventMapControls, openEventMapSheet } = await import('../scripts/map-engine');
+    bindEventMapControls();
+    await openEventMapSheet(detail);
+  });
+</script>
+
+<style>
+  .event-map-sheet {
+    position: fixed;
+    inset: 0;
+    z-index: 60;
+    display: flex;
+    flex-direction: column;
+    max-width: 480px;
+    margin: 0 auto;
+    background-color: var(--color-counter-bg, #FDFDF8);
+    color: var(--color-purple-deep, #3B1A6E);
+    box-shadow: 0 0 40px rgba(59, 26, 110, 0.2);
+  }
+
+  .event-map-sheet.hidden,
+  .hidden {
+    display: none !important;
+  }
+
+  .event-map-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: max(10px, env(safe-area-inset-top, 10px)) 14px 10px 14px;
+    border-bottom: 1px solid rgba(107, 58, 168, 0.16);
+    background-color: var(--color-white, #FFFFFF);
+  }
+
+  .event-map-heading {
+    min-width: 0;
+  }
+
+  .event-map-title {
+    margin: 0;
+    font-size: 16px;
+    font-weight: 800;
+    line-height: 1.2;
+    color: var(--color-purple-deep, #3B1A6E);
+  }
+
+  .event-map-subtitle {
+    margin: 2px 0 0 0;
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--color-purple-text, #623096);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .event-map-close-btn {
+    min-width: 44px;
+    min-height: 44px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 10px;
+    border: 1px solid rgba(107, 58, 168, 0.22);
+    background: var(--color-card-gradient-top, #F6F0FC);
+    color: var(--color-purple-deep, #3B1A6E);
+    font-size: 22px;
+    line-height: 1;
+    cursor: pointer;
+    touch-action: manipulation;
+    flex-shrink: 0;
+  }
+
+  .map-legend-strip {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 6px 14px;
+    background: var(--color-card-gradient-top, #F6F0FC);
+    border-bottom: 1px solid rgba(107, 58, 168, 0.12);
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--color-purple-deep, #3B1A6E);
+    flex-wrap: wrap;
+  }
+
+  .legend-item {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+  }
+
+  .legend-dot {
+    width: 9px;
+    height: 9px;
+    border-radius: 50%;
+    display: inline-block;
+  }
+
+  .legend-dot.is-live {
+    background: var(--color-orange, #F28C1E);
+    box-shadow: 0 0 0 3px rgba(242, 140, 30, 0.28);
+  }
+
+  .legend-dot.is-locked {
+    background: var(--color-purple, #6B3AA8);
+  }
+
+  .legend-dot.is-done {
+    background: #6B7280;
+  }
+
+  .legend-hint {
+    margin-left: auto;
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--color-purple-text, #623096);
+  }
+
+  .event-map-canvas {
+    position: relative;
+    flex: 1;
+    min-height: 280px;
+    overflow: hidden;
+    background: #538231;
+  }
+
+  .event-map-gl {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+  }
+
+  .map-labels-layer {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    z-index: 6;
+    overflow: hidden;
+  }
+
+  :global(.map-chip-label) {
+    position: absolute;
+    transform: translate(-50%, 0);
+    pointer-events: auto;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 3px 9px;
+    border-radius: 999px;
+    border: 1.5px solid #6B3AA8;
+    background: rgba(253, 253, 248, 0.96);
+    color: #3B1A6E;
+    font-family: -apple-system, BlinkMacSystemFont, "Noto Sans Bengali", "Segoe UI", Roboto, sans-serif;
+    font-size: 11px;
+    font-weight: 800;
+    line-height: 1.25;
+    white-space: nowrap;
+    box-shadow: 0 3px 10px rgba(20, 24, 16, 0.35);
+    cursor: pointer;
+    touch-action: manipulation;
+  }
+
+  :global(.map-chip-label.is-live) {
+    background: rgba(59, 26, 110, 0.96);
+    border-color: #F28C1E;
+    color: #FDFDF8;
+  }
+
+  :global(.map-chip-label.is-done) {
+    background: rgba(243, 244, 246, 0.94);
+    border-color: #6B7280;
+    color: #374151;
+  }
+
+  :global(.map-chip-label.is-selected) {
+    box-shadow: 0 0 0 2.5px #FFE8C8, 0 4px 14px rgba(0, 0, 0, 0.45);
+    z-index: 9;
+  }
+
+  .map-edge-chip {
+    position: absolute;
+    z-index: 11;
+    min-height: 44px;
+    padding: 6px 12px;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    border-radius: 999px;
+    border: 1.5px solid #F28C1E;
+    background: rgba(59, 26, 110, 0.95);
+    color: #FDFDF8;
+    font-family: -apple-system, BlinkMacSystemFont, "Noto Sans Bengali", "Segoe UI", Roboto, sans-serif;
+    font-size: 11px;
+    font-weight: 800;
+    box-shadow: 0 6px 16px rgba(15, 18, 12, 0.42);
+    cursor: pointer;
+    touch-action: manipulation;
+  }
+
+  .edge-arrow-wrap {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    color: #FFE8C8;
+    transition: transform 0.15s ease;
+  }
+
+  .edge-chip-text {
+    white-space: nowrap;
+  }
+
+  .map-floating-controls {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    right: 60px;
+    z-index: 10;
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 6px;
+    pointer-events: none;
+  }
+
+  .map-floating-controls > * {
+    pointer-events: auto;
+  }
+
+  .map-ctrl-pill {
+    min-width: 44px;
+    min-height: 44px;
+    padding: 0 11px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    border-radius: 10px;
+    border: 1px solid rgba(107, 58, 168, 0.25);
+    background: rgba(255, 255, 255, 0.95);
+    color: var(--color-purple-deep, #3B1A6E);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans Bengali", Roboto, sans-serif;
+    font-size: 12px;
+    font-weight: 700;
+    box-shadow: 0 3px 10px rgba(24, 28, 18, 0.25);
+    cursor: pointer;
+    touch-action: manipulation;
+  }
+
+  .map-ctrl-pill.is-active {
+    background: #3B1A6E;
+    border-color: #F28C1E;
+    color: #FDFDF8;
+  }
+
+  .map-ctrl-pill.is-located {
+    border-color: rgba(37, 99, 235, 0.6);
+    color: #1D4ED8;
+  }
+
+  .user-dot-indicator {
+    width: 9px;
+    height: 9px;
+    border-radius: 50%;
+    background: #2563EB;
+    box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.24);
+    display: inline-block;
+  }
+
+  .map-zoom-rail {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    z-index: 10;
+    display: flex;
+    flex-direction: column;
+    border-radius: 10px;
+    overflow: hidden;
+    border: 1px solid rgba(107, 58, 168, 0.25);
+    box-shadow: 0 3px 10px rgba(24, 28, 18, 0.28);
+    background: rgba(255, 255, 255, 0.95);
+  }
+
+  .map-zoom-btn {
+    min-width: 44px;
+    min-height: 44px;
+    border: none;
+    background: transparent;
+    color: var(--color-purple-deep, #3B1A6E);
+    font-size: 20px;
+    font-weight: 800;
+    line-height: 1;
+    cursor: pointer;
+    touch-action: manipulation;
+  }
+
+  .map-zoom-btn + .map-zoom-btn {
+    border-top: 1px solid rgba(107, 58, 168, 0.16);
+  }
+
+  .map-geo-notice {
+    position: absolute;
+    top: 62px;
+    left: 10px;
+    right: 64px;
+    z-index: 12;
+    padding: 6px 8px 6px 12px;
+    border-radius: 10px;
+    background: rgba(255, 247, 236, 0.97);
+    border: 1px solid rgba(242, 140, 30, 0.5);
+    box-shadow: 0 4px 12px rgba(24, 28, 18, 0.22);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+  }
+
+  .map-geo-notice.is-info {
+    background: rgba(246, 240, 252, 0.97);
+    border-color: rgba(107, 58, 168, 0.35);
+  }
+
+  .map-geo-text {
+    margin: 0;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans Bengali", Roboto, sans-serif;
+    font-size: 11px;
+    line-height: 1.35;
+    font-weight: 600;
+    color: var(--color-purple-deep, #3B1A6E);
+  }
+
+  .map-geo-dismiss {
+    min-width: 44px;
+    min-height: 44px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border: none;
+    border-radius: 8px;
+    background: transparent;
+    color: var(--color-purple-deep, #3B1A6E);
+    font-size: 18px;
+    cursor: pointer;
+    flex-shrink: 0;
+  }
+
+  .event-map-placeholder {
+    position: relative;
+    z-index: 2;
+    max-width: 280px;
+    margin: 72px auto;
+    padding: 16px;
+    border-radius: 12px;
+    border: 1px dashed rgba(255, 232, 200, 0.45);
+    background: rgba(255, 255, 255, 0.96);
+    text-align: center;
+  }
+
+  .placeholder-title {
+    margin: 0 0 4px 0;
+    font-size: 14px;
+    font-weight: 700;
+  }
+
+  .placeholder-status {
+    margin: 0;
+    font-size: 12px;
+    color: var(--color-purple-text, #623096);
+  }
+
+  /* Sliding Bottom-Sheet Pin Card */
+  .map-bottom-sheet {
+    position: absolute;
+    left: 10px;
+    right: 10px;
+    bottom: max(10px, env(safe-area-inset-bottom, 10px));
+    z-index: 15;
+    background: rgba(255, 255, 255, 0.98);
+    border-radius: 14px;
+    border: 1.5px solid rgba(107, 58, 168, 0.24);
+    box-shadow: 0 12px 28px rgba(18, 22, 14, 0.36);
+    padding: 12px 14px;
+    max-height: 52%;
+    overflow-y: auto;
+  }
+
+  .bottom-sheet-top {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 10px;
+    margin-bottom: 8px;
+  }
+
+  .bottom-sheet-titles {
+    min-width: 0;
+    flex: 1;
+  }
+
+  .bottom-sheet-name-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+
+  .sheet-place-bn {
+    margin: 0;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans Bengali", Roboto, sans-serif;
+    font-size: 16px;
+    font-weight: 800;
+    color: var(--color-purple-deep, #3B1A6E);
+  }
+
+  .sheet-place-en {
+    margin: 2px 0 0 0;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--color-purple-text, #623096);
+  }
+
+  .sheet-walk-info {
+    margin: 4px 0 0 0;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans Bengali", Roboto, sans-serif;
+    font-size: 11px;
+    font-weight: 700;
+    color: #5B2A9E;
+    background: #F6F0FC;
+    padding: 4px 8px;
+    border-radius: 6px;
+    display: inline-block;
+  }
+
+  .sheet-status-pill {
+    display: inline-flex;
+    align-items: center;
+    padding: 2px 8px;
+    border-radius: 999px;
+    font-size: 10px;
+    font-weight: 800;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+  }
+
+  .sheet-status-pill.is-live {
+    background: #F28C1E;
+    color: #FFFFFF;
+  }
+
+  .sheet-status-pill.is-locked {
+    background: #F6F0FC;
+    color: #5B2A9E;
+    border: 1px solid rgba(107, 58, 168, 0.35);
+  }
+
+  .sheet-status-pill.is-done {
+    background: #E5E7EB;
+    color: #4B5563;
+  }
+
+  .sheet-close-btn {
+    min-width: 44px;
+    min-height: 44px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 10px;
+    border: 1px solid rgba(107, 58, 168, 0.16);
+    background: var(--color-card-gradient-top, #F6F0FC);
+    color: var(--color-purple-deep, #3B1A6E);
+    font-size: 20px;
+    cursor: pointer;
+    touch-action: manipulation;
+    flex-shrink: 0;
+  }
+
+  .sheet-sessions-list {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  :global(.sheet-session-row) {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    padding: 8px 10px;
+    border-radius: 10px;
+    background: #FDFDF8;
+    border: 1px solid rgba(107, 58, 168, 0.14);
+  }
+
+  :global(.sheet-session-info) {
+    min-width: 0;
+  }
+
+  :global(.sheet-session-name) {
+    margin: 0;
+    font-size: 13px;
+    font-weight: 700;
+    color: #3B1A6E;
+  }
+
+  :global(.sheet-session-time) {
+    margin: 2px 0 0 0;
+    font-size: 11px;
+    font-weight: 600;
+    color: #623096;
+  }
+
+  :global(.sheet-session-state) {
+    padding: 3px 8px;
+    border-radius: 999px;
+    font-size: 10px;
+    font-weight: 800;
+    letter-spacing: 0.03em;
+    flex-shrink: 0;
+  }
+
+  :global(.sheet-session-state.is-live) {
+    background: #FFF3E0;
+    color: #E2780C;
+    border: 1px solid rgba(242, 140, 30, 0.45);
+  }
+
+  :global(.sheet-session-state.is-locked) {
+    background: #F6F0FC;
+    color: #6B3AA8;
+    border: 1px solid rgba(107, 58, 168, 0.25);
+  }
+
+  :global(.sheet-session-state.is-done) {
+    background: #F3F4F6;
+    color: #6B7280;
+    border: 1px solid #D1D5DB;
+  }
+
+  .sheet-reporting-gmap-wrap {
+    margin-top: 8px;
+    padding-top: 8px;
+    border-top: 1px solid rgba(107, 58, 168, 0.12);
+    text-align: right;
+  }
+
+  .sheet-gmap-link {
+    display: inline-flex;
+    align-items: center;
+    min-height: 44px;
+    padding: 0 6px;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans Bengali", Roboto, sans-serif;
+    font-size: 12px;
+    font-weight: 700;
+    color: #623096;
+    text-decoration: underline;
+    text-underline-offset: 3px;
+  }
+
+  :global(.maplibregl-ctrl-bottom-right),
+  :global(.maplibregl-ctrl-bottom-left) {
+    z-index: 4;
+  }
+
+  :global(.maplibregl-ctrl-attrib) {
+    font-size: 9px !important;
+    background: rgba(253, 253, 248, 0.8) !important;
+  }
+</style>

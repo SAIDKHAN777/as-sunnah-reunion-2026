@@ -1,0 +1,489 @@
+{
+  "places": [
+    {
+      "id": "stage",
+      "nameBn": "স্টেজ",
+      "nameEn": "Main Stage",
+      "lat": 23.79083,
+      "lng": 90.45778,
+      "icon": "stage"
+    },
+    {
+      "id": "adda",
+      "nameBn": "আড্ডা",
+      "nameEn": "Adda & Lounge",
+      "lat": 23.79083,
+      "lng": 90.45842,
+      "icon": "adda"
+    },
+    {
+      "id": "cricket",
+      "nameBn": "ক্রিকেট",
+      "nameEn": "Cricket Ground",
+      "lat": 23.79083,
+      "lng": 90.45920,
+      "icon": "cricket"
+    },
+    {
+      "id": "prayer",
+      "nameBn": "নামাজ",
+      "nameEn": "Masjid Complex",
+      "lat": 23.79050,
+      "lng": 90.46068,
+      "icon": "mosque"
+    },
+    {
+      "id": "football",
+      "nameBn": "ফুটবল",
+      "nameEn": "Football Field",
+      "lat": 23.78947,
+      "lng": 90.45985,
+      "icon": "football"
+    },
+    {
+      "id": "indoor",
+      "nameBn": "ইনডোর",
+      "nameEn": "Indoor Games Hall",
+      "lat": 23.78947,
+      "lng": 90.46034,
+      "icon": "indoor-games"
+    }
+  ],
+  "sessions": [
+    { "sessionId": "1", "placeId": "adda" },
+    { "sessionId": "2", "placeId": "adda" },
+    { "sessionId": "3", "placeId": "football" },
+    { "sessionId": "4", "placeId": "cricket" },
+    { "sessionId": "5", "placeId": "indoor" },
+    { "sessionId": "6", "placeId": "adda" },
+    { "sessionId": "8", "placeId": "prayer" },
+    { "sessionId": "9", "placeId": "indoor" },
+    { "sessionId": "10", "placeId": "stage" },
+    { "sessionId": "1794303645192", "placeId": "stage" }
+  ],
+  "paths": [
+    {
+      "from": "stage",
+      "to": "adda",
+      "coordinates": [
+        [90.45778, 23.79083],
+        [90.45778, 23.79066],
+        [90.45842, 23.79066],
+        [90.45842, 23.79083]
+      ]
+    },
+    {
+      "from": "adda",
+      "to": "cricket",
+      "coordinates": [
+        [90.45842, 23.79066],
+        [90.45920, 23.79066],
+        [90.45920, 23.79083]
+      ]
+    },
+    {
+      "from": "cricket",
+      "to": "prayer",
+      "coordinates": [
+        [90.45920, 23.79066],
+        [90.46048, 23.79066],
+        [90.46048, 23.79050],
+        [90.46068, 23.79050]
+      ]
+    },
+    {
+      "from": "cricket",
+      "to": "football",
+      "coordinates": [
+        [90.45920, 23.79066],
+        [90.45920, 23.78947],
+        [90.45985, 23.78947]
+      ]
+    },
+    {
+      "from": "football",
+      "to": "indoor",
+      "coordinates": [
+        [90.45985, 23.78947],
+        [90.46034, 23.78947]
+      ]
+    },
+    {
+      "from": "prayer",
+      "to": "indoor",
+      "coordinates": [
+        [90.46068, 23.79050],
+        [90.46048, 23.79050],
+        [90.46048, 23.78947],
+        [90.46034, 23.78947]
+      ]
+    }
+  ],
+  "mapArea": {
+    "center": [90.45935, 23.79015],
+    "zoom": 17.4,
+    "bounds": [
+      [90.45700, 23.78740],
+      [90.46260, 23.79280]
+    ]
+  },
+  "overlay": {
+    "type": "FeatureCollection",
+    "features": [
+      {
+        "type": "Feature",
+        "properties": { "id": "scrub-campus-core", "category": "scrub-patch", "label": "Botanical Campus Lawn" },
+        "geometry": {
+          "type": "Polygon",
+          "coordinates": [[
+            [90.45715, 23.78820],
+            [90.46225, 23.78820],
+            [90.46225, 23.79185],
+            [90.45715, 23.79185],
+            [90.45715, 23.78820]
+          ]]
+        }
+      },
+      {
+        "type": "Feature",
+        "properties": { "id": "canal-east", "category": "water", "label": "Eastern Canal" },
+        "geometry": {
+          "type": "Polygon",
+          "coordinates": [[
+            [90.46118, 23.79235],
+            [90.46148, 23.79235],
+            [90.46195, 23.79120],
+            [90.46245, 23.79048],
+            [90.46258, 23.78820],
+            [90.46232, 23.78820],
+            [90.46216, 23.79035],
+            [90.46166, 23.79112],
+            [90.46118, 23.79235]
+          ]]
+        }
+      },
+      {
+        "type": "Feature",
+        "properties": { "id": "road-ew-north", "category": "dirt-road" },
+        "geometry": {
+          "type": "LineString",
+          "coordinates": [
+            [90.45715, 23.79125],
+            [90.46155, 23.79125],
+            [90.46185, 23.79105]
+          ]
+        }
+      },
+      {
+        "type": "Feature",
+        "properties": { "id": "road-ew-midnorth", "category": "dirt-road" },
+        "geometry": {
+          "type": "LineString",
+          "coordinates": [
+            [90.45715, 23.79066],
+            [90.46175, 23.79066]
+          ]
+        }
+      },
+      {
+        "type": "Feature",
+        "properties": { "id": "road-ew-midsouth", "category": "dirt-road" },
+        "geometry": {
+          "type": "LineString",
+          "coordinates": [
+            [90.45715, 23.78998],
+            [90.46195, 23.78998]
+          ]
+        }
+      },
+      {
+        "type": "Feature",
+        "properties": { "id": "road-ew-south", "category": "dirt-road" },
+        "geometry": {
+          "type": "LineString",
+          "coordinates": [
+            [90.45715, 23.78922],
+            [90.46210, 23.78922]
+          ]
+        }
+      },
+      {
+        "type": "Feature",
+        "properties": { "id": "road-ew-far-south", "category": "dirt-road" },
+        "geometry": {
+          "type": "LineString",
+          "coordinates": [
+            [90.45715, 23.78872],
+            [90.46215, 23.78872]
+          ]
+        }
+      },
+      {
+        "type": "Feature",
+        "properties": { "id": "road-ns-farwest", "category": "dirt-road" },
+        "geometry": {
+          "type": "LineString",
+          "coordinates": [
+            [90.45746, 23.78830],
+            [90.45746, 23.79175]
+          ]
+        }
+      },
+      {
+        "type": "Feature",
+        "properties": { "id": "road-ns-west", "category": "dirt-road" },
+        "geometry": {
+          "type": "LineString",
+          "coordinates": [
+            [90.45810, 23.78830],
+            [90.45810, 23.79175]
+          ]
+        }
+      },
+      {
+        "type": "Feature",
+        "properties": { "id": "road-ns-midwest", "category": "dirt-road" },
+        "geometry": {
+          "type": "LineString",
+          "coordinates": [
+            [90.45875, 23.78830],
+            [90.45875, 23.79175]
+          ]
+        }
+      },
+      {
+        "type": "Feature",
+        "properties": { "id": "road-ns-center", "category": "dirt-road" },
+        "geometry": {
+          "type": "LineString",
+          "coordinates": [
+            [90.46048, 23.78830],
+            [90.46048, 23.79175]
+          ]
+        }
+      },
+      {
+        "type": "Feature",
+        "properties": { "id": "road-ns-east", "category": "dirt-road" },
+        "geometry": {
+          "type": "LineString",
+          "coordinates": [
+            [90.46148, 23.78830],
+            [90.46148, 23.79115],
+            [90.46118, 23.79175]
+          ]
+        }
+      },
+      {
+        "type": "Feature",
+        "properties": { "id": "zone-stage-deck", "category": "stage-zone", "label": "Main Stage" },
+        "geometry": {
+          "type": "Polygon",
+          "coordinates": [[
+            [90.45753, 23.79100],
+            [90.45804, 23.79100],
+            [90.45804, 23.79071],
+            [90.45753, 23.79071],
+            [90.45753, 23.79100]
+          ]]
+        }
+      },
+      {
+        "type": "Feature",
+        "properties": { "id": "zone-adda-lounge", "category": "adda-zone", "label": "Adda Park Fountain" },
+        "geometry": {
+          "type": "Polygon",
+          "coordinates": [[
+            [90.45815, 23.79100],
+            [90.45870, 23.79100],
+            [90.45870, 23.79071],
+            [90.45815, 23.79071],
+            [90.45815, 23.79100]
+          ]]
+        }
+      },
+      {
+        "type": "Feature",
+        "properties": { "id": "field-swadesh-cricket", "category": "cricket-field", "label": "Cricket Ground" },
+        "geometry": {
+          "type": "Polygon",
+          "coordinates": [[
+            [90.45879, 23.79101],
+            [90.45968, 23.79101],
+            [90.45968, 23.79070],
+            [90.45879, 23.79070],
+            [90.45879, 23.79101]
+          ]]
+        }
+      },
+      {
+        "type": "Feature",
+        "properties": { "id": "field-chinese-football", "category": "football-field", "label": "Football Turf" },
+        "geometry": {
+          "type": "Polygon",
+          "coordinates": [[
+            [90.45954, 23.78971],
+            [90.46016, 23.78971],
+            [90.46016, 23.78926],
+            [90.45954, 23.78926],
+            [90.45954, 23.78971]
+          ]]
+        }
+      },
+      {
+        "type": "Feature",
+        "properties": { "id": "bldg-indoor-hall", "category": "building", "label": "Indoor Hall", "heightM": 6, "roofStyle": "tin" },
+        "geometry": {
+          "type": "Polygon",
+          "coordinates": [[
+            [90.46022, 23.78969],
+            [90.46045, 23.78969],
+            [90.46045, 23.78927],
+            [90.46022, 23.78927],
+            [90.46022, 23.78969]
+          ]]
+        }
+      },
+      {
+        "type": "Feature",
+        "properties": { "id": "bldg-masjid-complex", "category": "building", "label": "Masjid Complex", "heightM": 10, "roofStyle": "concrete" },
+        "geometry": {
+          "type": "Polygon",
+          "coordinates": [[
+            [90.46053, 23.79060],
+            [90.46086, 23.79060],
+            [90.46086, 23.79038],
+            [90.46053, 23.79038],
+            [90.46053, 23.79060]
+          ]]
+        }
+      },
+      {
+        "type": "Feature",
+        "properties": { "id": "flowers-stage-front", "category": "flower-bed", "label": "Stage Flower Bed" },
+        "geometry": {
+          "type": "Polygon",
+          "coordinates": [[
+            [90.45753, 23.79063],
+            [90.45804, 23.79063],
+            [90.45804, 23.79056],
+            [90.45753, 23.79056],
+            [90.45753, 23.79063]
+          ]]
+        }
+      },
+      {
+        "type": "Feature",
+        "properties": { "id": "flowers-adda-south", "category": "flower-bed", "label": "Adda Rose Bed" },
+        "geometry": {
+          "type": "Polygon",
+          "coordinates": [[
+            [90.45815, 23.79063],
+            [90.45870, 23.79063],
+            [90.45870, 23.79056],
+            [90.45815, 23.79056],
+            [90.45815, 23.79063]
+          ]]
+        }
+      },
+      {
+        "type": "Feature",
+        "properties": { "id": "flowers-masjid-border", "category": "flower-bed", "label": "Masjid Garden Bed" },
+        "geometry": {
+          "type": "Polygon",
+          "coordinates": [[
+            [90.46053, 23.79035],
+            [90.46086, 23.79035],
+            [90.46086, 23.79028],
+            [90.46053, 23.79028],
+            [90.46053, 23.79035]
+          ]]
+        }
+      },
+      {
+        "type": "Feature",
+        "properties": { "id": "flowers-football-walk", "category": "flower-bed", "label": "Pitch Garden Border" },
+        "geometry": {
+          "type": "Polygon",
+          "coordinates": [[
+            [90.45954, 23.78979],
+            [90.46016, 23.78979],
+            [90.46016, 23.78973],
+            [90.45954, 23.78973],
+            [90.45954, 23.78979]
+          ]]
+        }
+      },
+      {
+        "type": "Feature",
+        "properties": { "id": "veg-north-belt", "category": "vegetation" },
+        "geometry": {
+          "type": "Polygon",
+          "coordinates": [[
+            [90.45756, 23.79012],
+            [90.45895, 23.79012],
+            [90.45895, 23.79036],
+            [90.45756, 23.79036],
+            [90.45756, 23.79012]
+          ]]
+        }
+      },
+      {
+        "type": "Feature",
+        "properties": { "id": "veg-center-grove", "category": "vegetation" },
+        "geometry": {
+          "type": "Polygon",
+          "coordinates": [[
+            [90.45912, 23.79006],
+            [90.46018, 23.79006],
+            [90.46018, 23.79032],
+            [90.45912, 23.79032],
+            [90.45912, 23.79006]
+          ]]
+        }
+      },
+      {
+        "type": "Feature",
+        "properties": { "id": "veg-east-grove", "category": "vegetation" },
+        "geometry": {
+          "type": "Polygon",
+          "coordinates": [[
+            [90.46060, 23.79002],
+            [90.46142, 23.79002],
+            [90.46142, 23.79028],
+            [90.46060, 23.79028],
+            [90.46060, 23.79002]
+          ]]
+        }
+      },
+      {
+        "type": "Feature",
+        "properties": { "id": "veg-south-shelterbelt", "category": "vegetation" },
+        "geometry": {
+          "type": "Polygon",
+          "coordinates": [[
+            [90.45830, 23.78886],
+            [90.46120, 23.78886],
+            [90.46120, 23.78912],
+            [90.45830, 23.78912],
+            [90.45830, 23.78886]
+          ]]
+        }
+      },
+      {
+        "type": "Feature",
+        "properties": { "id": "veg-southwest-lawn-grove", "category": "vegetation" },
+        "geometry": {
+          "type": "Polygon",
+          "coordinates": [[
+            [90.45822, 23.78936],
+            [90.45896, 23.78936],
+            [90.45896, 23.78976],
+            [90.45822, 23.78976],
+            [90.45822, 23.78936]
+          ]]
+        }
+      }
+    ]
+  }
+}

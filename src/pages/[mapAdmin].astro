@@ -1,0 +1,704 @@
+---
+import '../styles/tokens.css';
+
+export function getStaticPaths() {
+  if (!import.meta.env.DEV) {
+    return [];
+  }
+  return [{ params: { mapAdmin: 'map-admin' } }];
+}
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <title>Map Admin Studio (Dev Only) | As-Sunnah Reunion 2026</title>
+    <link rel="icon" type="image/svg+xml" href="/assets/logo-as-sunnah.svg" />
+  </head>
+  <body>
+    <div class="admin-app">
+      <header class="admin-topbar">
+        <div class="topbar-title-group">
+          <h1 class="topbar-title">Map Admin Studio</h1>
+          <span class="dev-pill">DEV ONLY (Excluded from Prod)</span>
+        </div>
+
+        <div class="topbar-slider-group">
+          <label for="preview-time-slider" class="slider-label">
+            Preview Clock: <strong id="preview-time-display">8:50 AM</strong>
+          </label>
+          <input
+            id="preview-time-slider"
+            type="range"
+            min="420"
+            max="1200"
+            step="5"
+            value="530"
+            class="time-slider"
+          />
+          <div class="quick-time-row">
+            <button type="button" class="quick-t-btn" data-mins="465">7:45A</button>
+            <button type="button" class="quick-t-btn" data-mins="530">8:50A</button>
+            <button type="button" class="quick-t-btn" data-mins="790">1:10P</button>
+            <button type="button" class="quick-t-btn" data-mins="915">3:15P</button>
+            <button type="button" class="quick-t-btn" data-mins="1015">4:55P</button>
+          </div>
+        </div>
+
+        <div class="topbar-actions">
+          <label class="action-btn is-secondary file-label" for="import-json-input">
+            Import
+            <input id="import-json-input" type="file" accept=".json,application/json" hidden />
+          </label>
+          <button type="button" id="btn-copy-json" class="action-btn is-primary" disabled>
+            Copy JSON
+          </button>
+          <button type="button" id="btn-download-json" class="action-btn is-accent" disabled>
+            Download locations.json
+          </button>
+          <a href="/" class="action-btn is-ghost">View Site</a>
+        </div>
+      </header>
+
+      <div id="validation-banner" class="validation-banner" role="status" aria-live="polite"></div>
+      <div id="admin-toast" class="admin-toast hidden" role="status"></div>
+
+      <main class="admin-workspace">
+        <!-- Interactive Map Pane (right on laptop, top on phone) -->
+        <section class="map-pane" aria-label="Interactive Map Editor">
+          <div id="admin-map-gl" class="admin-map-gl"></div>
+          <div id="admin-map-banner" class="map-mode-banner">
+            Tab 1 (Places): Select a place then tap map or drag marker
+          </div>
+          <div class="map-pane-controls">
+            <button type="button" id="admin-fit-campus" class="pane-ctrl-btn">Campus</button>
+            <button type="button" id="admin-fit-all" class="pane-ctrl-btn">All Pins</button>
+            <button type="button" id="admin-toggle-3d" class="pane-ctrl-btn" aria-pressed="false">3D</button>
+          </div>
+        </section>
+
+        <!-- Control Sidebar (left on laptop, bottom on phone) -->
+        <aside class="sidebar-pane">
+          <nav class="tab-bar" role="tablist" aria-label="Admin sections">
+            <button
+              type="button"
+              id="tab-btn-places"
+              class="tab-btn is-active"
+              role="tab"
+              aria-selected="true"
+              data-tab="places"
+            >
+              Places (6)
+            </button>
+            <button
+              type="button"
+              id="tab-btn-sessions"
+              class="tab-btn"
+              role="tab"
+              aria-selected="false"
+              data-tab="sessions"
+            >
+              Sessions
+            </button>
+            <button
+              type="button"
+              id="tab-btn-paths"
+              class="tab-btn"
+              role="tab"
+              aria-selected="false"
+              data-tab="paths"
+            >
+              Paths &amp; Terrain
+            </button>
+          </nav>
+
+          <!-- TAB 1: PLACES -->
+          <section id="tab-panel-places" class="tab-panel" role="tabpanel">
+            <p class="panel-hint">
+              Click a row to fly there, tap anywhere on the map to move its pin, or drag the marker directly.
+            </p>
+            <div id="places-list" class="card-stack"></div>
+          </section>
+
+          <!-- TAB 2: SESSIONS -->
+          <section id="tab-panel-sessions" class="tab-panel hidden" role="tabpanel">
+            <p class="panel-hint">
+              All sessions loaded from content.json. Assign each to one of the 6 places ("Where?").
+            </p>
+            <div id="sessions-list" class="card-stack"></div>
+          </section>
+
+          <!-- TAB 3: PATHS & TERRAIN OVERLAY -->
+          <section id="tab-panel-paths" class="tab-panel hidden" role="tabpanel">
+            <div class="sub-box">
+              <h2 class="sub-heading">Walking Paths (Between Places)</h2>
+              <div class="path-select-row">
+                <label class="field-label">
+                  From
+                  <select id="path-from-select" class="field-select"></select>
+                </label>
+                <label class="field-label">
+                  To
+                  <select id="path-to-select" class="field-select"></select>
+                </label>
+              </div>
+              <div class="draw-btn-row">
+                <button type="button" id="btn-draw-path" class="mini-btn is-primary">Start Drawing Path</button>
+                <button type="button" id="btn-undo-path" class="mini-btn" disabled>Undo Point</button>
+                <button type="button" id="btn-save-path" class="mini-btn is-accent" disabled>Save Path</button>
+                <button type="button" id="btn-cancel-path" class="mini-btn hidden">Cancel</button>
+              </div>
+              <p id="path-draft-status" class="draft-status">Not drawing.</p>
+              <div id="paths-list" class="card-stack"></div>
+            </div>
+
+            <div class="sub-box">
+              <h2 class="sub-heading">Custom GeoJSON Terrain Overlay</h2>
+              <p class="panel-hint">
+                Draw missing campus dirt roads, buildings, tree groves, or sports fields directly over Protomaps tiles.
+              </p>
+              <div class="path-select-row">
+                <label class="field-label">
+                  Feature Type
+                  <select id="overlay-cat-select" class="field-select">
+                    <option value="dirt-road">Park Walkway (Line)</option>
+                    <option value="building">Building Footprint (Polygon)</option>
+                    <option value="stage-zone">Main Stage Zone (Polygon)</option>
+                    <option value="adda-zone">Adda Fountain Plaza (Polygon)</option>
+                    <option value="football-field">Football Field (Polygon)</option>
+                    <option value="cricket-field">Cricket Ground (Polygon)</option>
+                    <option value="vegetation">Park Tree Grove (Polygon)</option>
+                    <option value="flower-bed">Flower Garden Bed (Polygon)</option>
+                    <option value="scrub-patch">Lawn Meadow (Polygon)</option>
+                    <option value="water">Canal / Water (Polygon)</option>
+                  </select>
+                </label>
+                <label class="field-label">
+                  Label (optional)
+                  <input id="overlay-label-input" type="text" class="field-input" placeholder="e.g. Dining Hall" />
+                </label>
+              </div>
+              <div class="draw-btn-row">
+                <button type="button" id="btn-draw-overlay" class="mini-btn is-primary">Draw Shape</button>
+                <button type="button" id="btn-undo-overlay" class="mini-btn" disabled>Undo Point</button>
+                <button type="button" id="btn-save-overlay" class="mini-btn is-accent" disabled>Add Shape</button>
+                <button type="button" id="btn-cancel-overlay" class="mini-btn hidden">Cancel</button>
+              </div>
+              <p id="overlay-draft-status" class="draft-status">Not drawing overlay.</p>
+              <div id="overlay-list" class="card-stack"></div>
+            </div>
+          </section>
+        </aside>
+      </main>
+    </div>
+
+    <script>
+      if (import.meta.env.DEV) {
+        import('../scripts/map-admin');
+      }
+    </script>
+  </body>
+</html>
+
+<style>
+  *, *::before, *::after {
+    box-sizing: border-box;
+  }
+
+  html, body {
+    margin: 0;
+    padding: 0;
+    height: 100%;
+    background: #FDFDF8;
+    color: #3B1A6E;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans Bengali", Roboto, sans-serif;
+  }
+
+  .hidden {
+    display: none !important;
+  }
+
+  .admin-app {
+    display: flex;
+    flex-direction: column;
+    min-height: 100dvh;
+    height: 100dvh;
+    overflow: hidden;
+  }
+
+  .admin-topbar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px 14px;
+    padding: 8px 14px;
+    background: #FFFFFF;
+    border-bottom: 1px solid rgba(107, 58, 168, 0.18);
+  }
+
+  .topbar-title-group {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .topbar-title {
+    margin: 0;
+    font-size: 16px;
+    font-weight: 800;
+  }
+
+  .dev-pill {
+    padding: 2px 8px;
+    border-radius: 999px;
+    background: #FFF3E0;
+    border: 1px solid rgba(242, 140, 30, 0.45);
+    color: #E2780C;
+    font-size: 10px;
+    font-weight: 800;
+  }
+
+  .topbar-slider-group {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .slider-label {
+    font-size: 12px;
+    font-weight: 600;
+  }
+
+  .time-slider {
+    width: 150px;
+    min-height: 36px;
+    accent-color: #F28C1E;
+    cursor: pointer;
+  }
+
+  .quick-time-row {
+    display: flex;
+    gap: 4px;
+    flex-wrap: wrap;
+  }
+
+  .quick-t-btn {
+    min-height: 36px;
+    padding: 0 8px;
+    border-radius: 8px;
+    border: 1px solid rgba(107, 58, 168, 0.22);
+    background: #F6F0FC;
+    color: #3B1A6E;
+    font-size: 11px;
+    font-weight: 700;
+    cursor: pointer;
+  }
+
+  .topbar-actions {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+
+  .action-btn {
+    min-height: 44px;
+    padding: 0 12px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 10px;
+    border: 1px solid rgba(107, 58, 168, 0.25);
+    font-size: 12px;
+    font-weight: 700;
+    cursor: pointer;
+    text-decoration: none;
+  }
+
+  .action-btn:disabled {
+    opacity: 0.42;
+    cursor: not-allowed;
+  }
+
+  .action-btn.is-primary {
+    background: #3B1A6E;
+    color: #FFFFFF;
+    border-color: #3B1A6E;
+  }
+
+  .action-btn.is-accent {
+    background: #F28C1E;
+    color: #FFFFFF;
+    border-color: #E2780C;
+  }
+
+  .action-btn.is-secondary {
+    background: #F6F0FC;
+    color: #3B1A6E;
+  }
+
+  .action-btn.is-ghost {
+    background: transparent;
+    color: #623096;
+  }
+
+  .validation-banner {
+    padding: 6px 14px;
+    font-size: 12px;
+    font-weight: 600;
+    border-bottom: 1px solid rgba(107, 58, 168, 0.14);
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px 12px;
+    align-items: center;
+  }
+
+  .validation-banner.has-errors {
+    background: #FEF2F2;
+    color: #991B1B;
+    border-bottom-color: #FECACA;
+  }
+
+  .validation-banner.is-ok {
+    background: #ECFDF5;
+    color: #065F46;
+    border-bottom-color: #A7F3D0;
+  }
+
+  :global(.val-pill) {
+    display: inline-flex;
+    align-items: center;
+    padding: 2px 8px;
+    border-radius: 999px;
+    font-size: 11px;
+    font-weight: 700;
+  }
+
+  :global(.val-pill.is-error) {
+    background: #FEE2E2;
+    color: #991B1B;
+    border: 1px solid #FCA5A5;
+  }
+
+  :global(.val-pill.is-warn) {
+    background: #FEF3C7;
+    color: #92400E;
+    border: 1px solid #FCD34D;
+  }
+
+  :global(.val-pill.is-ok) {
+    background: #D1FAE5;
+    color: #065F46;
+  }
+
+  .admin-toast {
+    position: fixed;
+    bottom: 16px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 90;
+    padding: 10px 16px;
+    border-radius: 10px;
+    background: #3B1A6E;
+    color: #FFFFFF;
+    font-size: 12px;
+    font-weight: 700;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25);
+  }
+
+  /* Responsive Workspace: Stacked on Mobile, Side-by-Side (Left Panel + Map) on Desktop */
+  .admin-workspace {
+    flex: 1;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .map-pane {
+    position: relative;
+    height: 40vh;
+    min-height: 240px;
+    flex-shrink: 0;
+    background: #538231;
+    border-bottom: 1px solid rgba(107, 58, 168, 0.2);
+  }
+
+  .sidebar-pane {
+    flex: 1;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+    background: #FDFDF8;
+    overflow: hidden;
+  }
+
+  @media (min-width: 960px) {
+    .admin-workspace {
+      flex-direction: row-reverse;
+    }
+
+    .sidebar-pane {
+      width: 440px;
+      flex: none;
+      border-right: 1px solid rgba(107, 58, 168, 0.18);
+    }
+
+    .map-pane {
+      flex: 1;
+      height: auto;
+      border-bottom: none;
+    }
+  }
+
+  .admin-map-gl {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+  }
+
+  .map-mode-banner {
+    position: absolute;
+    left: 10px;
+    bottom: 10px;
+    z-index: 8;
+    max-width: calc(100% - 140px);
+    padding: 6px 10px;
+    border-radius: 8px;
+    background: rgba(59, 26, 110, 0.92);
+    color: #FDFDF8;
+    font-size: 11px;
+    font-weight: 700;
+    pointer-events: none;
+  }
+
+  .map-pane-controls {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    z-index: 8;
+    display: flex;
+    gap: 6px;
+  }
+
+  .pane-ctrl-btn {
+    min-width: 44px;
+    min-height: 44px;
+    padding: 0 10px;
+    border-radius: 10px;
+    border: 1px solid rgba(107, 58, 168, 0.3);
+    background: rgba(255, 255, 255, 0.94);
+    color: #3B1A6E;
+    font-size: 11px;
+    font-weight: 800;
+    cursor: pointer;
+  }
+
+  .pane-ctrl-btn.is-active {
+    background: #3B1A6E;
+    color: #FFFFFF;
+    border-color: #F28C1E;
+  }
+
+  .tab-bar {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    border-bottom: 1px solid rgba(107, 58, 168, 0.16);
+    background: #FFFFFF;
+    flex-shrink: 0;
+  }
+
+  .tab-btn {
+    min-height: 44px;
+    border: none;
+    border-bottom: 3px solid transparent;
+    background: transparent;
+    color: #623096;
+    font-size: 12px;
+    font-weight: 700;
+    cursor: pointer;
+  }
+
+  .tab-btn.is-active {
+    color: #3B1A6E;
+    border-bottom-color: #F28C1E;
+    background: #FFFBF4;
+  }
+
+  .tab-panel {
+    flex: 1;
+    overflow-y: auto;
+    padding: 12px;
+  }
+
+  .panel-hint {
+    margin: 0 0 10px 0;
+    font-size: 12px;
+    color: #623096;
+  }
+
+  .card-stack {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  :global(.admin-card) {
+    padding: 10px 12px;
+    border-radius: 12px;
+    border: 1.5px solid rgba(107, 58, 168, 0.16);
+    background: #FFFFFF;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  :global(.admin-card.is-selected) {
+    border-color: #F28C1E;
+    background: #FFF9F0;
+  }
+
+  :global(.admin-card-top) {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+  }
+
+  :global(.admin-card-title) {
+    margin: 0;
+    font-size: 13px;
+    font-weight: 800;
+    color: #3B1A6E;
+  }
+
+  :global(.admin-card-sub) {
+    margin: 0;
+    font-size: 11px;
+    color: #623096;
+  }
+
+  :global(.pin-badge) {
+    padding: 2px 8px;
+    border-radius: 999px;
+    font-size: 10px;
+    font-weight: 800;
+    text-transform: uppercase;
+  }
+
+  :global(.pin-badge.is-set) {
+    background: #D1FAE5;
+    color: #065F46;
+  }
+
+  :global(.pin-badge.is-missing) {
+    background: #FEE2E2;
+    color: #991B1B;
+  }
+
+  :global(.coords-mono) {
+    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+    font-size: 11px;
+    color: #4B5563;
+  }
+
+  :global(.card-btn-row) {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+  }
+
+  .sub-box {
+    padding: 10px;
+    border-radius: 12px;
+    border: 1px solid rgba(107, 58, 168, 0.16);
+    background: #FFFFFF;
+    margin-bottom: 12px;
+  }
+
+  .sub-heading {
+    margin: 0 0 8px 0;
+    font-size: 13px;
+    font-weight: 800;
+  }
+
+  .path-select-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    margin-bottom: 8px;
+  }
+
+  .field-label {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    font-size: 11px;
+    font-weight: 700;
+  }
+
+  :global(.field-select),
+  .field-input {
+    min-height: 44px;
+    width: 100%;
+    padding: 6px 8px;
+    border-radius: 8px;
+    border: 1px solid rgba(107, 58, 168, 0.28);
+    background: #FFFFFF;
+    color: #3B1A6E;
+    font-size: 12px;
+    font-weight: 600;
+  }
+
+  .draw-btn-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-bottom: 6px;
+  }
+
+  :global(.mini-btn) {
+    min-height: 44px;
+    padding: 0 10px;
+    border-radius: 8px;
+    border: 1px solid rgba(107, 58, 168, 0.25);
+    background: #F6F0FC;
+    color: #3B1A6E;
+    font-size: 11px;
+    font-weight: 700;
+    cursor: pointer;
+  }
+
+  :global(.mini-btn.is-primary) {
+    background: #3B1A6E;
+    color: #FFFFFF;
+  }
+
+  :global(.mini-btn.is-accent) {
+    background: #F28C1E;
+    color: #FFFFFF;
+    border-color: #E2780C;
+  }
+
+  :global(.mini-btn.is-danger) {
+    background: #FEE2E2;
+    color: #991B1B;
+    border-color: #FCA5A5;
+  }
+
+  :global(.mini-btn:disabled) {
+    opacity: 0.45;
+    cursor: not-allowed;
+  }
+
+  .draft-status {
+    margin: 0 0 8px 0;
+    font-size: 11px;
+    font-weight: 600;
+    color: #623096;
+  }
+</style>
