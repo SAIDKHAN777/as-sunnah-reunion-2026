@@ -1,0 +1,19 @@
+services:
+  - type: web
+    name: as-sunnah-reunion
+    runtime: static
+    buildCommand: npm install && npm run build
+    staticPublishPath: dist
+    headers:
+      - path: /tiles/*
+        name: Accept-Ranges
+        value: bytes
+      - path: /tiles/*
+        name: Access-Control-Expose-Headers
+        value: Accept-Ranges, Content-Range, Content-Length, ETag
+      - path: /assets/*
+        name: Cache-Control
+        value: public, max-age=604800, stale-while-revalidate=86400
+      - path: /content.json
+        name: Cache-Control
+        value: public, max-age=60, must-revalidate
